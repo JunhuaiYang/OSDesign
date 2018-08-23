@@ -1,7 +1,9 @@
 ifneq ($(KERNELRELEASE),)    
 #kbuild syntax.
-mymodule-objs :=try.o
-obj-m :=try.o
+mymodule-objs :=MyDriver.o
+obj-m :=MyDriver.o
+# mymodule-objs :=try.o
+# obj-m :=try.o
 else
 PWD :=$(shell pwd)
 KVER :=$(shell uname -r)

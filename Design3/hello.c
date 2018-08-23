@@ -1,5 +1,5 @@
-#include "linux/kernerl.h" 
-#include "linux/module.h" 
+#include <linux/kernerl.h>
+#include <linux/module.h>
 /*处理版本问题CONFIG_MODVERSIONS */ 
 
 #if CONFIG_MODVERSIONS==1 
