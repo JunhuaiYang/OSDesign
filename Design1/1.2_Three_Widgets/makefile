@@ -11,6 +11,6 @@ $(TARGETS):$(SRCS)
 	$(CC) $@.c -o $@ $(LDFLAGS) $(CFLAGS)
 
 clean:
-	-rm -rf $(TARGETS) *~ .*swp
+	-rm -rf $(TARGETS) 
 
 .PHONY: clean all
