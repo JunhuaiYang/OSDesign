@@ -15,17 +15,34 @@
 
 # .PHONY: clean all
 
-CC       = gcc
+# CC       = gcc
 # 加入头文件搜索路径
+# CFLAGS = 
+# OBJS = MainWindow.o outline.o
+# LDFLAGS  =  `pkg-config gtk+-2.0 --cflags --libs`
+
+# TARGET = main
+
+# $(TARGET):$(OBJS)
+# 	$(CC) -o $(TARGET) $(OBJS) $(CFLAGS) $(LDFLAGS)
+# $(OBJS):%.o:%.c　
+# 	$(CC) -c $(CFLAGS) $< -o $@  $(LDFLAGS)
+#  clean:
+# 	-$(RM) $(TARGET) $(OBJS)　
+
+CC = gcc
 CFLAGS = 
-OBJS = MainWindow.o outline.o
-LDFLAGS  =  `pkg-config gtk+-2.0 --cflags --libs`
+LDFLAGS = `pkg-config gtk+-2.0 --cflags --libs`
 
-TARGET = main
+SRCS = outline.c MainWindow.c
+TARGETS = app
 
-$(OBJS):%.o:%.c　
-	$(CC) -c $(CFLAGS) $< -o $@  $(LDFLAGS)
-$(TARGET):$(OBJS)
-	$(CC) -o $(TARGET) $(OBJS) $(CFLAGS)
- clean:
-	-$(RM) $(TARGET) $(OBJS)　
+all:$(TARGETS)
+
+$(TARGETS):$(SRCS)
+	$(CC) $^ -o $@ $(LDFLAGS) $(CFLAGS)
+
+clean:
+	-rm -rf $(TARGETS) *~ .*swp
+
+.PHONY: clean all

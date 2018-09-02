@@ -11,6 +11,7 @@
         "glib-object.h": "c",
         "gbinding.h": "c",
         "glib.h": "c",
-        "garray.h": "c"
+        "garray.h": "c",
+        "string.h": "c"
     }
 }

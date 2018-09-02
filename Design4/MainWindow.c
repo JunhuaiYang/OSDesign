@@ -6,6 +6,7 @@
  * @Copyright (C)  2018  YangJunhuai. all right reserved
 ***********************************************************************/
 #include "MainWindow.h"
+#include "outline.h"
 
 int main(int argc, char ** argv)
 {
@@ -47,6 +48,14 @@ int main(int argc, char ** argv)
 
 	/* 显示该笔记本 */
 	gtk_widget_show(notebook);
+
+	// gtk_notebook_append_page(GTK_NOTEBOOK(notebook), NULL, gtk_label_new(
+	// 		"CPU信息"));
+	// gtk_notebook_append_page(GTK_NOTEBOOK(notebook), NULL, gtk_label_new(
+	// 		"CPU信息2"));
+	// gtk_notebook_append_page(GTK_NOTEBOOK(notebook), NULL, gtk_label_new(
+	// 		"CPU信息3"));
+	createCPUPage(notebook);
 
 	// /* 新建第一个标签页到notebook，用的是frame框架 */
 	// createCPUPage(notebook);
