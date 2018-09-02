@@ -8,7 +8,7 @@ TARGETS = $(patsubst %.c, %, $(SRCS))
 all:$(TARGETS)
 
 $(TARGETS):$(SRCS)
-	$(CC) $@.c -o $@ $(LDFLAGS) $(CFLAGS)
+	$(CC) $@.c -o $@.o $(LDFLAGS) $(CFLAGS)
 
 clean:
 	-rm -rf $(TARGETS) 

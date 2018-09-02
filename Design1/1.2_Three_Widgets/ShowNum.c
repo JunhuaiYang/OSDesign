@@ -27,10 +27,8 @@ int main(int argc, char *argv[])
     gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
     gtk_window_set_title(GTK_WINDOW(window), "累加");
     gtk_container_set_border_width(GTK_CONTAINER(window), 20); //边界宽度
-    // gtk_window_set_default_size(GTK_WINDOW(window), 500, 400);
 
     g_signal_connect_swapped(G_OBJECT(window),"destroy",G_CALLBACK(gtk_main_quit), NULL);
-    // g_signal_connect(G_OBJECT(window), "destory", G_CALLBACK(destory_progress), NULL);
     
     // 创建盒装容器并添加
     vbox = gtk_vbox_new(FALSE, 10);

@@ -5,7 +5,12 @@
             "includePath": [
                 "${workspaceFolder}/**",
                 "/usr/include/gtk-2.0",
-                "/usr/include/glib-2.0"
+                "/usr/include/glib-2.0",
+                "/usr/include/gtk-3.0/gdk",
+                "/usr/include/pango-1.0",
+                "/usr/include/gdk-pixbuf-2.0",
+                "/usr/include/cairo",
+                "/usr/include/atk-1.0"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/clang",

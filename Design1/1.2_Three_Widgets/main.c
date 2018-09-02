@@ -9,17 +9,17 @@ int main(void)
   pid_t p1, p2;
   if ((p1 = fork()) == 0)
   {
-    execv("./TimeShow", NULL);
+    execv("./TimeShow.o", NULL);
   }
   else
   {
     if ((p2 = fork()) == 0)
     {
-      execv("./ShowNum", NULL);
+      execv("./ShowNum.o", NULL);
     }
     else
     {
-      execv("./Sum", NULL);
+      execv("./Sum.o", NULL);
     }
   }
 }

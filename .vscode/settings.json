@@ -1,5 +1,16 @@
 {
     "files.associations": {
-        "kernel.h": "c"
+        "kernel.h": "c",
+        "gtk.h": "c",
+        "gtkcombobox.h": "c",
+        "gdk.h": "c",
+        "gdkapplaunchcontext.h": "c",
+        "gio.h": "c",
+        "giotypes.h": "c",
+        "gioenums.h": "c",
+        "glib-object.h": "c",
+        "gbinding.h": "c",
+        "glib.h": "c",
+        "garray.h": "c"
     }
 }
