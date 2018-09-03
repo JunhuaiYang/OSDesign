@@ -26,5 +26,5 @@ void CreateModule(GtkWidget* notebook)
     gtk_widget_show(text_label);
 
     /* 将该标签页加入到notebook中 */
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new("系统概要"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new("模块"));
 }

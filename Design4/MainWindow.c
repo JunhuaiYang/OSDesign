@@ -12,6 +12,7 @@
 #include "memory.h"
 #include "module.h"
 #include "status.h"
+#include "process.h"
 
 int main(int argc, char ** argv)
 {
@@ -52,6 +53,7 @@ int main(int argc, char ** argv)
 	CreateOutline(notebook);
 	CreateCPU(notebook);
 	CreateMemory(notebook);
+	CreateProcess(notebook);
 	CreateModule(notebook);
 
 	// 状态栏

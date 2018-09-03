@@ -8,7 +8,7 @@
 
 #include "menu.h"
 
-int CreateMenuBar(GtkWidget *vbox)
+void CreateMenuBar(GtkWidget *vbox)
 {
   GtkWidget *menu_bar;
   GtkWidget *file_menu;
@@ -25,8 +25,6 @@ int CreateMenuBar(GtkWidget *vbox)
   GtkWidget *help;
   GtkWidget *helpit;
   GtkWidget *about;
-
-  char buf[128];
 
   // 菜单栏
   menu_bar = gtk_menu_bar_new();

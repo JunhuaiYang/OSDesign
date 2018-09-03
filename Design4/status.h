@@ -11,5 +11,6 @@
 #include "MainWindow.h"
 
 void ShowStatus(GtkWidget* vbox);
+gint GetTime(gpointer label);
 
 #endif // __STATUS_h__

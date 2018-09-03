@@ -1,14 +1,14 @@
 /***********************************************************************
- * @file memory.c
-     MEMORY
+ * @file process.c
+     PROCESS
  * @brief   source file
  *
  * @Copyright (C)  2018  YangJunhuai. all right reserved
 ***********************************************************************/
 
-#include "memory.h"
+#include "process.h"
 
-void CreateMemory(GtkWidget* notebook)
+void CreateProcess(GtkWidget* notebook)
 {
 
     GtkWidget *vbox;  
@@ -22,9 +22,9 @@ void CreateMemory(GtkWidget* notebook)
     text_label = gtk_label_new("");
     gtk_box_pack_start(GTK_BOX(vbox), text_label, FALSE, FALSE, 10);
     gtk_label_set_markup(
-        GTK_LABEL(text_label), "<span font_desc='18'>0-9的循环：3</span>");
+        GTK_LABEL(text_label), "<span font_desc='18'>0-9的循环：1</span>");
     gtk_widget_show(text_label);
 
     /* 将该标签页加入到notebook中 */
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new("内存"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new("进程"));
 }

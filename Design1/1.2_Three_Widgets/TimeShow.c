@@ -18,8 +18,6 @@ int main(int argc, char *argv[])
     GtkWidget *label;
     GtkWidget *text_label;
 
-    gpointer data;
-
     // 初始化整个GTK
     gtk_init(&argc, &argv);
     // 生成窗口
@@ -33,7 +31,6 @@ int main(int argc, char *argv[])
     // gtk_window_set_default_size(GTK_WINDOW(window), 500, 400);
 
     g_signal_connect_swapped(G_OBJECT(window),"destroy",G_CALLBACK(gtk_main_quit), NULL);
-    // g_signal_connect(G_OBJECT(window), "destory", G_CALLBACK(destory_progress), NULL);
     
     // 创建盒装容器并添加
     vbox = gtk_vbox_new(FALSE, 10);

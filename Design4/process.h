@@ -1,15 +1,16 @@
 /***********************************************************************
- * @file menu.h
-     MENU
+ * @file process.h
+     PROCESS
  * @brief   header file
  *
  * @Copyright (C)  2018  YangJunhuai. all right reserved
 ***********************************************************************/
-#ifndef __MENU_h__
-#define __MENU_h__
+#ifndef __PROCESS_h__
+#define __PROCESS_h__
 
 #include "MainWindow.h"
 
-void CreateMenuBar(GtkWidget *vbox);
+void CreateProcess(GtkWidget* notebook);
 
-#endif // __MENU_h__
+
+#endif // __PROCESS_h__
