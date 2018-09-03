@@ -8,7 +8,7 @@
 
 #include "outline.h"
 
-void createCPUPage(GtkWidget* notebook)
+void CreateOutline(GtkWidget* notebook)
 {
 
     GtkWidget *vbox;  
@@ -18,6 +18,13 @@ void createCPUPage(GtkWidget* notebook)
     // gtk_container_add(GTK_CONTAINER(notebook), vbox);
     gtk_container_border_width(GTK_CONTAINER(vbox), 150);
     gtk_widget_show(vbox);
+
+    GtkWidget *vbox2;  
+    vbox2 = gtk_vbox_new(FALSE, 10);
+    vbox2 = gtk_vbox_new(FALSE, 10);
+    // gtk_container_add(GTK_CONTAINER(notebook), vbox);
+    gtk_container_border_width(GTK_CONTAINER(vbox2), 150);
+    gtk_widget_show(vbox2);
 
     GtkWidget *text_label;
     
@@ -30,7 +37,7 @@ void createCPUPage(GtkWidget* notebook)
     /* 将该标签页加入到notebook中 */
 	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new(
 			"CPU信息"));
-    gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new(
-			"CPU信息2"));
+    gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox2, gtk_label_new(
+			"进程信息"));
 }
 

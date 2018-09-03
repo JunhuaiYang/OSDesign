@@ -1,15 +1,15 @@
 /***********************************************************************
- * @file outline.h
-     OUTLINE
+ * @file menu.h
+     MENU
  * @brief   header file
+ *
+ * @Copyright (C)  2018  YangJunhuai. all right reserved
 ***********************************************************************/
-#ifndef __OUTLINE_h__
-#define __OUTLINE_h__
+#ifndef __MENU_h__
+#define __MENU_h__
 
 #include "MainWindow.h"
 
-void CreateOutline(GtkWidget* notebook);
+int CreateMenuBar(GtkWidget *vbox);
 
-
-#endif // __OUTLINE_h__
-
+#endif // __MENU_h__
