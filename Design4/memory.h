@@ -10,4 +10,7 @@
 
 #include "MainWindow.h"
 
+void CreateMemory(GtkWidget* notebook);
+
+
 #endif // __MEMORY_h__

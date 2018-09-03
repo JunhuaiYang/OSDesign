@@ -10,4 +10,6 @@
 
 #include "MainWindow.h"
 
+void CreateModule(GtkWidget* notebook);
+
 #endif // __MODULE_h__
