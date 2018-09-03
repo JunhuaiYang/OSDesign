@@ -10,12 +10,9 @@
 
 void ShowStatus(GtkWidget* vbox)
 {
-  GtkWidget *status_bar;
-
-  // 创建状态栏
-  status_bar = gtk_statusbar_new();
-  gtk_box_pack_start(GTK_BOX(vbox), status_bar, TRUE, TRUE, 0);
-  gtk_statusbar_push(GTK_STATUSBAR(status_bar), 0, "buff");
-
+  GtkWidget* statusbar = gtk_statusbar_new();
+	//把工具栏加入盒子容器
+	gtk_box_pack_end(GTK_BOX(vbox),statusbar,FALSE,TRUE,1);
+	gtk_statusbar_push(GTK_STATUSBAR(statusbar), 0, "公司付款后");
 
 }

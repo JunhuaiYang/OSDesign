@@ -32,9 +32,9 @@ int main(int argc, char ** argv)
   g_signal_connect_swapped(G_OBJECT(window),"destroy",G_CALLBACK(gtk_main_quit), NULL);
 
 	// 创建一个主窗口纵向盒
-	main_vbox = gtk_vbox_new(FALSE, 0);
+	main_vbox = gtk_vbox_new(FALSE, 2);
 	// 周围的间距 
-	gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 5);
+	gtk_container_set_border_width(GTK_CONTAINER(main_vbox), 2);
 	// 添加进入主窗口
 	gtk_container_add(GTK_CONTAINER(window), main_vbox);
 
@@ -46,7 +46,7 @@ int main(int argc, char ** argv)
 	gtk_notebook_set_tab_pos((GtkNotebook *) notebook, GTK_POS_TOP); //位置
 	gtk_notebook_set_show_border((GtkNotebook *) notebook, FALSE);
 	/* 在纵向盒顶部添加该笔记本 */
-	gtk_box_pack_end(GTK_BOX(main_vbox), notebook, TRUE, TRUE, 0);
+	gtk_box_pack_start(GTK_BOX(main_vbox), notebook, TRUE, TRUE, 0);
 
 	// 添加子页面
 	CreateOutline(notebook);
@@ -54,15 +54,7 @@ int main(int argc, char ** argv)
 	CreateMemory(notebook);
 	CreateModule(notebook);
 
-	gtk_widget_show(notebook);
-	
-	// // 创建一个状态栏纵向盒
-	// status_vbox = gtk_vbox_new(FALSE, 5);
-	// // 周围的间距 
-	// gtk_container_set_border_width(GTK_CONTAINER(status_vbox), 5);
-	// // 添加进入主窗口
-	// gtk_container_add(GTK_CONTAINER(main_vbox), status_vbox);
-
+	// 状态栏
 	ShowStatus(main_vbox);
 
 	// 全部show出来！
