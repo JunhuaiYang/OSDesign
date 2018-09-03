@@ -46,9 +46,6 @@ int main(int argc, char ** argv)
 	/* 在纵向盒顶部添加该笔记本 */
 	gtk_box_pack_end(GTK_BOX(main_vbox), notebook, TRUE, TRUE, 0);
 
-	// /* 显示该笔记本 */
-	// gtk_widget_show(notebook);
-
 	CreateOutline(notebook);
 
 

@@ -69,10 +69,4 @@ int CreateMenuBar(GtkWidget *vbox)
   g_signal_connect(G_OBJECT(quit), "activate", G_CALLBACK(gtk_main_quit), NULL);
 
 
-
-	// gtk_widget_show(menu_bar);
-  // gtk_widget_show(file_menu);
-  // gtk_widget_show(file);
-  // gtk_widget_show(quit);
-
 }
