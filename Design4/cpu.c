@@ -19,10 +19,9 @@ void CreateCPU(GtkWidget* notebook)
     // gtk_container_add(GTK_CONTAINER(notebook), vbox);
     gtk_container_border_width(GTK_CONTAINER(vbox), 150);
 
-    text_label = gtk_label_new("");
+    text_label = gtk_label_new("CPU");
     gtk_box_pack_start(GTK_BOX(vbox), text_label, FALSE, FALSE, 10);
-    gtk_label_set_markup(
-        GTK_LABEL(text_label), "<span font_desc='18'>0-9的循环：1</span>");
+    set_widget_font_size(text_label,16,FALSE);
     gtk_widget_show(text_label);
 
     /* 将该标签页加入到notebook中 */

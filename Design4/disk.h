@@ -1,15 +1,15 @@
 /***********************************************************************
- * @file process.h
-     PROCESS
+ * @file disk.h
+     DISK
  * @brief   header file
  *
  * @Copyright (C)  2018  YangJunhuai. all right reserved
 ***********************************************************************/
-#ifndef __PROCESS_h__
-#define __PROCESS_h__
+#ifndef __DISK_h__
+#define __DISK_h__
 
 #include "MainWindow.h"
 
-void CreateProcess(GtkWidget* notebook);
+void CreateDisk(GtkWidget* notebook);
 
-#endif // __PROCESS_h__
+#endif // __DISK_h__

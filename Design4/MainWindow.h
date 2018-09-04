@@ -20,7 +20,7 @@
 #include <cairo.h>
 #include <time.h>
 
-
+void set_widget_font_size(GtkWidget *widget, int size, gboolean is_button);
 
 #endif // __MAINWINDOW_h__
 

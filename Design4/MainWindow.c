@@ -13,6 +13,7 @@
 #include "module.h"
 #include "status.h"
 #include "process.h"
+#include "disk.h"
 
 int main(int argc, char ** argv)
 {
@@ -26,7 +27,7 @@ int main(int argc, char ** argv)
 	gtk_window_set_title(GTK_WINDOW(window), "系统监视器");
 	gtk_window_set_opacity(GTK_WINDOW(window), 0.9); // 设置透明度函数
 	// 窗口大小
-	gtk_window_set_default_size(GTK_WINDOW(window), 1200, 800);
+	gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
 	// 窗口初始位置
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 	// 关闭信号链接
@@ -55,6 +56,7 @@ int main(int argc, char ** argv)
 	CreateMemory(notebook);
 	CreateProcess(notebook);
 	CreateModule(notebook);
+	CreateDisk(notebook);
 
 	// 状态栏
 	ShowStatus(main_vbox);
@@ -67,3 +69,27 @@ int main(int argc, char ** argv)
 	return 0;
 }
 
+ /* 功能:      设置控件字体大小 
+  * widget:    需要改变字体的控件 
+  * size:      字体大小 
+  * is_button: TRUE代表控件为按钮，FALSE为其它控件 
+  */  
+void set_widget_font_size(GtkWidget *widget, int size, gboolean is_button)  
+{  
+    GtkWidget *labelChild;    
+    PangoFontDescription *font;    
+    gint fontSize = size;    
+  
+    font = pango_font_description_from_string("Sans");          //"Sans"字体名     
+    pango_font_description_set_size(font, fontSize*PANGO_SCALE);//设置字体大小     
+  
+    if(is_button){  
+        labelChild = gtk_bin_get_child(GTK_BIN(widget));//取出GtkButton里的label    
+    }else{  
+        labelChild = widget;  
+    }  
+  
+    //设置label的字体，这样这个GtkButton上面显示的字体就变了  
+    gtk_widget_modify_font(GTK_WIDGET(labelChild), font);  
+    pango_font_description_free(font);  
+}  

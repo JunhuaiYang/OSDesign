@@ -1,14 +1,14 @@
 /***********************************************************************
- * @file process.c
-     PROCESS
+ * @file disk.c
+     DISK
  * @brief   source file
  *
  * @Copyright (C)  2018  YangJunhuai. all right reserved
 ***********************************************************************/
 
-#include "process.h"
+#include "disk.h"
 
-void CreateProcess(GtkWidget* notebook)
+void CreateDisk(GtkWidget* notebook)
 {
 
     GtkWidget *vbox;  
@@ -26,5 +26,5 @@ void CreateProcess(GtkWidget* notebook)
     gtk_widget_show(text_label);
 
     /* 将该标签页加入到notebook中 */
-	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new("进程"));
+	gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new("文件系统"));
 }

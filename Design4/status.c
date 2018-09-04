@@ -30,3 +30,4 @@ gint GetTime(gpointer label)
 
   return TRUE;
 }
+
