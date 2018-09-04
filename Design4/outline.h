@@ -10,17 +10,19 @@
 
 typedef struct outline_info
 {
-    char hostname[30];
-    char os[20];
-    char version[30];
+    char hostname[50];
+    char os[50];
+    char version[50];
     char kernel[50];
     char cpu[50];
-    char memory[20];
+    char memory[50];
 
 } OUTLINE_INFO, *p_outline_info;
 
 void CreateOutline(GtkWidget* notebook);
 void GetOutlineInfo(p_outline_info oinfo);
+void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo);
+void ShowLabel(GtkWidget *vbox, const char *text);
 
 
 
