@@ -1,5 +1,6 @@
 {
     "files.associations": {
+        "*.tpl": "tpl",
         "kernel.h": "c",
         "gtk.h": "c",
         "gtkcombobox.h": "c",
@@ -12,6 +13,7 @@
         "gbinding.h": "c",
         "glib.h": "c",
         "garray.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "typeinfo": "cpp"
     }
 }

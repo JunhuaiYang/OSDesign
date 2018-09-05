@@ -7,6 +7,7 @@
 #define __OUTLINE_h__
 
 #include "MainWindow.h"
+#include "cpu.h"
 
 typedef struct outline_info
 {
@@ -22,7 +23,6 @@ typedef struct outline_info
 void CreateOutline(GtkWidget* notebook);
 void GetOutlineInfo(p_outline_info oinfo);
 void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo);
-void ShowLabel(GtkWidget *vbox, const char *text);
 
 
 

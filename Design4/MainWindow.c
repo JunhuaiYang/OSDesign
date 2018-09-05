@@ -27,7 +27,7 @@ int main(int argc, char ** argv)
 	gtk_window_set_title(GTK_WINDOW(window), "系统监视器");
 	gtk_window_set_opacity(GTK_WINDOW(window), 0.9); // 设置透明度函数
 	// 窗口大小
-	gtk_window_set_default_size(GTK_WINDOW(window), 800, 600);
+	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 800);
 	// 窗口初始位置
 	gtk_window_set_position(GTK_WINDOW(window), GTK_WIN_POS_CENTER);
 	// 关闭信号链接

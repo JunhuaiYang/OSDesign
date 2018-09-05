@@ -152,13 +152,4 @@ void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo)
     ShowLabel(vbox, " ");
 }
 
-void ShowLabel(GtkWidget *vbox, const char *text)
-{
-    GtkWidget *label;
 
-    label = gtk_label_new("");
-    // 对齐 第二个参数 0为左  第三个参数 0为上
-    gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-    gtk_label_set_text(GTK_LABEL(label), text);
-    gtk_container_add(GTK_CONTAINER(vbox), label);
-}
