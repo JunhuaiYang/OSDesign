@@ -41,9 +41,11 @@ void CreateCPU(GtkWidget *notebook)
     gtk_container_border_width(GTK_CONTAINER(vbox3), 5);
     gtk_container_add(GTK_CONTAINER(CPU_frame3), vbox3);
 
-    // 获取CPU基本信息并显示
-    GetCPUInfo();
     ShowCPUInfo(vbox3);
+
+    // CPU使用率刷新
+    ShowRatio(vbox1);
+    // g_timeout_add(1000, ShowRatio, vbox1);
 }
 
 void GetOneInfo(char *path, char *name, char *info)
@@ -151,4 +153,52 @@ void ShowLabel(GtkWidget *vbox, const char *text)
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
     gtk_label_set_text(GTK_LABEL(label), text);
     gtk_container_add(GTK_CONTAINER(vbox), label);
+}
+
+
+gint ShowRatio(gpointer data)
+{
+    GtkWidget *table;
+    // 需要表格布局 创建4行1列的表格
+    table = gtk_table_new(4, 1, TRUE);
+    gtk_container_add(GTK_CONTAINER(data), table);
+
+    GtkWidget *vbox1 = gtk_vbox_new(TRUE, 2);
+    GtkWidget *vbox2 = gtk_vbox_new(TRUE, 2);
+    GtkWidget *vbox3 = gtk_vbox_new(TRUE, 2);
+    GtkWidget *vbox4 = gtk_vbox_new(TRUE, 2);
+
+    gtk_table_attach_defaults(GTK_TABLE(table), vbox1, 0, 1, 0, 1);
+    gtk_table_attach_defaults(GTK_TABLE(table), vbox2, 0, 1, 1, 2);
+    gtk_table_attach_defaults(GTK_TABLE(table), vbox3, 0, 1, 2, 3);
+    gtk_table_attach_defaults(GTK_TABLE(table), vbox4, 0, 1, 3, 4);
+
+    // 每个表格的布局
+    GtkWidget *label;
+    label = gtk_label_new("CPU使用率");
+    gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+    set_widget_font_size(label,14,FALSE);
+    gtk_container_add(GTK_CONTAINER(vbox1), label);
+    ShowLabel(vbox1, "%5\n");
+
+    label = gtk_label_new("当前进程数");
+    gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+    set_widget_font_size(label,14,FALSE);
+    gtk_container_add(GTK_CONTAINER(vbox2), label);
+    ShowLabel(vbox2, "%5\n");
+
+    label = gtk_label_new("正在运行进程");
+    gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+    set_widget_font_size(label,14,FALSE);
+    gtk_container_add(GTK_CONTAINER(vbox3), label);
+    ShowLabel(vbox3, "%5\n");
+
+    label = gtk_label_new("阻塞进程");
+    gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
+    set_widget_font_size(label,14,FALSE);
+    gtk_container_add(GTK_CONTAINER(vbox4), label);
+    ShowLabel(vbox4, "%5\n");
+
+    return TRUE;
+
 }

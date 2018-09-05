@@ -30,6 +30,8 @@ void ShowCPUInfo(GtkWidget *vbox);
 unsigned int strstrcount(char *str1, char *str2);
 void GetProcessor(char *str);
 void GetCPUInfo(void);
+gint ShowRatio(gpointer data);
+
 
 
 

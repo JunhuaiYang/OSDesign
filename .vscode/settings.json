@@ -14,6 +14,7 @@
         "glib.h": "c",
         "garray.h": "c",
         "string.h": "c",
-        "typeinfo": "cpp"
+        "typeinfo": "cpp",
+        "array": "cpp"
     }
 }

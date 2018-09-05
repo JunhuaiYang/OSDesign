@@ -50,7 +50,7 @@ void CreateOutline(GtkWidget *notebook)
         src = gdk_pixbuf_new_from_file("./image/unknow.jpg", NULL);
 
     //修改图片大小
-    GdkPixbuf *dst = gdk_pixbuf_scale_simple(src, 150, 150, GDK_INTERP_BILINEAR);
+    GdkPixbuf *dst = gdk_pixbuf_scale_simple(src, 200, 200, GDK_INTERP_BILINEAR);
     GtkWidget *image = gtk_image_new_from_pixbuf(dst);
     //将image_two添加到hbox中
     gtk_container_add(GTK_CONTAINER(hbox), image);
@@ -124,6 +124,9 @@ void GetOutlineInfo(p_outline_info oinfo)
         tp = '\0';
     }
     close(fd);
+
+    // 从cpu获得cpu信息
+    strcpy(oinfo->cpu, cpu_info.model_name);
 }
 
 void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo)
