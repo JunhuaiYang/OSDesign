@@ -10,6 +10,14 @@
 
 // 申明为全局变量
 CPU_INFO cpu_info;
+STAT_INFO stat_info;
+
+// 刷新标签
+GtkWidget *label_cpu_1;
+GtkWidget *label_cpu_2;
+GtkWidget *label_cpu_3;
+GtkWidget *label_cpu_4;
+
 
 void CreateCPU(GtkWidget *notebook)
 {
@@ -45,15 +53,21 @@ void CreateCPU(GtkWidget *notebook)
 
     // CPU使用率刷新
     ShowRatio(vbox1);
-    // g_timeout_add(1000, ShowRatio, vbox1);
+    g_timeout_add(1000, UpdateRatio, NULL);
 }
 
 void GetOneInfo(char *path, char *name, char *info)
 {
-    int fd = open(path, O_RDONLY);
+    int fd;
     char buf[3000];
     char *p = NULL;
     char *t = info;
+
+    if ((fd = open(path, O_RDONLY)) == -1)
+    {
+        perror("fail to path");
+        return;
+    }
 
     read(fd, buf, sizeof(buf));
     close(fd);
@@ -89,13 +103,18 @@ unsigned int strstrcount(char *str1, char *str2)
 
 void GetProcessor(char *str)
 {
-    char buf[5000];
-    int fd = open("/proc/cpuinfo", O_RDONLY);
+    char buf[20000];
+    int fd;
+    if ((fd = open("/proc/cpuinfo", O_RDONLY)) == -1)
+    {
+        perror("fail to cpuinfo");
+        return;
+    }
     read(fd, buf, sizeof(buf));
 
-    unsigned int i = strstrcount(buf,"processor");
+    unsigned int i = strstrcount(buf, "model");
 
-    sprintf(str,"%hd",i);
+    sprintf(str, "%hd", i);
 }
 
 void GetCPUInfo(void)
@@ -117,31 +136,29 @@ void GetCPUInfo(void)
 
     // processor
     GetProcessor(cpu_info.processor);
-
 }
 
 void ShowCPUInfo(GtkWidget *vbox)
 {
     char text[50];
 
-    sprintf(text, "\t\t型号\t\t： %s", cpu_info.model_name);
+    sprintf(text, "\t\t型号\t\t\t： %s", cpu_info.model_name);
     ShowLabel(vbox, text);
 
-    sprintf(text, "\t\t核心\t\t：%s", cpu_info.cores);
+    sprintf(text, "\t\t核心\t\t\t：%s", cpu_info.cores);
     ShowLabel(vbox, text);
 
     sprintf(text, "\t\t逻辑处理器\t：%s", cpu_info.processor);
     ShowLabel(vbox, text);
 
-    sprintf(text, "\t\t主频\t\t：%s MHz", cpu_info.clock_speed);
+    sprintf(text, "\t\t主频\t\t\t：%s MHz", cpu_info.clock_speed);
     ShowLabel(vbox, text);
 
-    sprintf(text, "\t\t缓存\t\t：%s", cpu_info.cache_size);
+    sprintf(text, "\t\t缓存\t\t\t：%s", cpu_info.cache_size);
     ShowLabel(vbox, text);
 
-    sprintf(text, "\t\t寻址位数\t：%s", cpu_info.address_sizes);
+    sprintf(text, "\t\t寻址位数\t\t：%s", cpu_info.address_sizes);
     ShowLabel(vbox, text);
-
 }
 
 void ShowLabel(GtkWidget *vbox, const char *text)
@@ -155,8 +172,7 @@ void ShowLabel(GtkWidget *vbox, const char *text)
     gtk_container_add(GTK_CONTAINER(vbox), label);
 }
 
-
-gint ShowRatio(gpointer data)
+void ShowRatio(GtkWidget *data)
 {
     GtkWidget *table;
     // 需要表格布局 创建4行1列的表格
@@ -175,30 +191,102 @@ gint ShowRatio(gpointer data)
 
     // 每个表格的布局
     GtkWidget *label;
+
     label = gtk_label_new("CPU使用率");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-    set_widget_font_size(label,14,FALSE);
+    set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox1), label);
-    ShowLabel(vbox1, "%5\n");
 
     label = gtk_label_new("当前进程数");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-    set_widget_font_size(label,14,FALSE);
+    set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox2), label);
-    ShowLabel(vbox2, "%5\n");
 
     label = gtk_label_new("正在运行进程");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-    set_widget_font_size(label,14,FALSE);
+    set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox3), label);
-    ShowLabel(vbox3, "%5\n");
 
     label = gtk_label_new("阻塞进程");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
-    set_widget_font_size(label,14,FALSE);
+    set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox4), label);
-    ShowLabel(vbox4, "%5\n");
 
-    return TRUE;
+    label_cpu_1 = gtk_label_new("");
+    gtk_misc_set_alignment(GTK_MISC(label_cpu_1), 0, 0.5);
+    gtk_container_add(GTK_CONTAINER(vbox1), label_cpu_1);
+
+    label_cpu_2 = gtk_label_new("");
+    gtk_misc_set_alignment(GTK_MISC(label_cpu_2), 0, 0.5);
+    gtk_container_add(GTK_CONTAINER(vbox2), label_cpu_2);
+
+    label_cpu_3 = gtk_label_new("");
+    gtk_misc_set_alignment(GTK_MISC(label_cpu_3), 0, 0.5);
+    gtk_container_add(GTK_CONTAINER(vbox3), label_cpu_3);
+
+    label_cpu_4 = gtk_label_new("");
+    gtk_misc_set_alignment(GTK_MISC(label_cpu_4), 0, 0.5);
+    gtk_container_add(GTK_CONTAINER(vbox4), label_cpu_4);
+}
+
+/* 取得cpu利用率 */
+float getCpuUseRatio()
+{
+
+}
+
+gint UpdateRatio(gpointer data)
+{
+    char string[128];
+    // 更新信息
+    GetStat(&stat_info);
+
+    sprintf(string, "%ld %ld %ld %ld %ld %ld %ld", stat_info.user, stat_info.nice, stat_info.sys, stat_info.idle, stat_info.iowait, stat_info.irq);
+    gtk_label_set_text(GTK_LABEL(label_cpu_1), string);
+
+    sprintf(string, "%ld", stat_info.processes);
+    gtk_label_set_text(GTK_LABEL(label_cpu_2), string);
+
+    sprintf(string, "%ld", stat_info.procs_running);
+    gtk_label_set_text(GTK_LABEL(label_cpu_3), string);
+
+    sprintf(string, "%ld", stat_info.procs_blocked);
+    gtk_label_set_text(GTK_LABEL(label_cpu_4), string);
+}
+
+void GetStat(p_statinfo istat)
+{
+    int fd;
+    char buf[51200];
+    char *strs;
+    char cp[128];
+    size_t count;
+    
+    if ((fd = open("/proc/stat", O_RDONLY)) == -1)
+    {
+        perror("fail to stat");
+        return;
+    }
+    count = read(fd, buf, sizeof(buf));
+    close(fd);
+    buf[count] = '\0';
+
+    sscanf(buf, "cpu %ld%ld%ld%ld%ld%ld%ld", &istat->user, &istat->nice, &istat->sys, &istat->idle, &istat->iowait, &istat->irq, &istat->softirq);
+
+    // 查找 processes
+    strs = strstr(buf, "processes");
+    strcpy(cp, strs);
+    sscanf(cp,"processes %ld", &istat->processes);
+
+    // 查找 procs_running
+    strs = strstr(buf, "procs_running");
+    strcpy(cp, strs);
+    // printf(" str:%s ", cp);
+    sscanf(cp,"procs_running %ld", &istat->procs_running);
+
+    // 查找 procs_blocked
+    strs = strstr(buf, "procs_blocked");
+    strcpy(cp, strs);
+    sscanf(cp,"procs_blocked %ld", &istat->procs_blocked);
 
 }

@@ -21,6 +21,20 @@ typedef struct cpuInfo
     char address_sizes[50];  //寻址位数
 } CPU_INFO, *p_cpuinfo;
 
+typedef struct statinfo
+{
+    long int user;  // 用户模式
+    long int nice;  // 低优先级用户模式
+    long int sys;  // 内核模式
+    long int idle;  // 空闲的处理器时间
+    long int iowait;  // io等待
+    long int irq;  // 硬中断时间
+    long int softirq;  // 软中断时间
+    long int processes;  //运行进程
+    long int procs_running;  //正在运行
+    long int procs_blocked;  //阻塞
+}STAT_INFO, *p_statinfo;
+
 extern CPU_INFO cpu_info;
 
 void CreateCPU(GtkWidget* notebook);
@@ -30,9 +44,9 @@ void ShowCPUInfo(GtkWidget *vbox);
 unsigned int strstrcount(char *str1, char *str2);
 void GetProcessor(char *str);
 void GetCPUInfo(void);
-gint ShowRatio(gpointer data);
-
-
+void ShowRatio(GtkWidget *data);
+gint UpdateRatio(gpointer data);
+void GetStat(p_statinfo istat);
 
 
 

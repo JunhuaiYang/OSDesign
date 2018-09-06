@@ -134,10 +134,10 @@ void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo)
     char text[50];
     ShowLabel(vbox, " ");
 
-    sprintf(text, "计算机名\t： %s", oinfo.hostname);
+    sprintf(text, "计算机名\t\t： %s", oinfo.hostname);
     ShowLabel(vbox, text);
 
-    sprintf(text, "系统名\t\t：%s", oinfo.os);
+    sprintf(text, "系统名\t\t\t：%s", oinfo.os);
     ShowLabel(vbox, text);
 
     sprintf(text, "系统版本号\t：%s", oinfo.version);
@@ -146,10 +146,10 @@ void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo)
     sprintf(text, "内核版本号\t：%s", oinfo.kernel);
     ShowLabel(vbox, text);
 
-    sprintf(text, "CPU\t\t：%s", oinfo.cpu);
+    sprintf(text, "CPU\t\t\t：%s", oinfo.cpu);
     ShowLabel(vbox, text);
 
-    sprintf(text, "内存\t\t：%s", oinfo.memory);
+    sprintf(text, "内存\t\t\t：%s", oinfo.memory);
     ShowLabel(vbox, text);
 
     ShowLabel(vbox, " ");
