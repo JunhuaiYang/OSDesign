@@ -230,9 +230,29 @@ void ShowRatio(GtkWidget *data)
 }
 
 /* 取得cpu利用率 */
-float getCpuUseRatio()
+void GetCpuUseRatio(void)
 {
+    long int all;
+    long int idle;
+    static long int all_o = 0;
+    static long int idle_o = 0;
 
+    all = stat_info.user + stat_info.nice + stat_info.sys + 
+        stat_info.idle + stat_info.iowait + stat_info.irq + 
+        stat_info.softirq;
+
+    idle = stat_info.idle;
+
+    // printf("%d %d %d %d",all, idle,all_o, idle_o );
+
+    // 计算cpu利用率
+    // △（all - idle) / △all
+    stat_info.cpu_ratio =(float) ((all-all_o) - (idle - idle_o)) / (all - all_o) * 100.0;
+
+    // printf(" %f \n", stat_info.cpu_ratio );
+    // 记录
+    all_o = all;
+    idle_o = idle;
 }
 
 gint UpdateRatio(gpointer data)
@@ -240,8 +260,9 @@ gint UpdateRatio(gpointer data)
     char string[128];
     // 更新信息
     GetStat(&stat_info);
+    GetCpuUseRatio();
 
-    sprintf(string, "%ld %ld %ld %ld %ld %ld %ld", stat_info.user, stat_info.nice, stat_info.sys, stat_info.idle, stat_info.iowait, stat_info.irq);
+    sprintf(string, "%.2f %%", stat_info.cpu_ratio );
     gtk_label_set_text(GTK_LABEL(label_cpu_1), string);
 
     sprintf(string, "%ld", stat_info.processes);
@@ -252,6 +273,8 @@ gint UpdateRatio(gpointer data)
 
     sprintf(string, "%ld", stat_info.procs_blocked);
     gtk_label_set_text(GTK_LABEL(label_cpu_4), string);
+
+    return 1;
 }
 
 void GetStat(p_statinfo istat)

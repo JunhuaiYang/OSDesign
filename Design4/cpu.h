@@ -33,9 +33,12 @@ typedef struct statinfo
     long int processes;  //运行进程
     long int procs_running;  //正在运行
     long int procs_blocked;  //阻塞
+
+    float cpu_ratio;
 }STAT_INFO, *p_statinfo;
 
 extern CPU_INFO cpu_info;
+extern STAT_INFO stat_info;
 
 void CreateCPU(GtkWidget* notebook);
 void GetOneInfo(char *path, char *name, char* info);
@@ -47,6 +50,7 @@ void GetCPUInfo(void);
 void ShowRatio(GtkWidget *data);
 gint UpdateRatio(gpointer data);
 void GetStat(p_statinfo istat);
+void GetCpuUseRatio(void);
 
 
 
