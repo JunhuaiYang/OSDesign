@@ -197,7 +197,7 @@ void ShowRatio(GtkWidget *data)
     set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox1), label);
 
-    label = gtk_label_new("当前进程数");
+    label = gtk_label_new("历史进程数");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
     set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox2), label);

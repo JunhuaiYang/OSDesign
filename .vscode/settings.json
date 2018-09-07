@@ -15,6 +15,7 @@
         "garray.h": "c",
         "string.h": "c",
         "typeinfo": "cpp",
-        "array": "cpp"
+        "array": "cpp",
+        "memory.c": "c"
     }
 }

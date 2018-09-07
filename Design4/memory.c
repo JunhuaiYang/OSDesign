@@ -201,7 +201,7 @@ long int GetOneMemoInfo(char *name)
 
     if ((fd = open("/proc/meminfo", O_RDONLY)) == -1)
     {
-        perror("fail to path");
+        perror("fail to meminfo");
         return 0;
     }
 

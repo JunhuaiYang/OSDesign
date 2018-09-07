@@ -8,6 +8,8 @@
 
 #include "outline.h"
 
+
+
 void CreateOutline(GtkWidget *notebook)
 {
 
@@ -127,6 +129,11 @@ void GetOutlineInfo(p_outline_info oinfo)
 
     // 从cpu获得cpu信息
     strcpy(oinfo->cpu, cpu_info.model_name);
+
+    // 从memory获得内存信息
+    GetMemoInfo();
+    sprintf(oinfo->memory, "%.2fG", memo_info.MemTotal /1024.0 /1024.0);
+
 }
 
 void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo)
@@ -149,7 +156,7 @@ void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo)
     sprintf(text, "CPU\t\t\t：%s", oinfo.cpu);
     ShowLabel(vbox, text);
 
-    sprintf(text, "内存\t\t\t：%s", oinfo.memory);
+    sprintf(text, "安装内存\t\t\t：%s", oinfo.memory);
     ShowLabel(vbox, text);
 
     ShowLabel(vbox, " ");

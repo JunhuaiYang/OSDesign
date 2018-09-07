@@ -8,6 +8,7 @@
 
 #include "MainWindow.h"
 #include "cpu.h"
+#include "memory.h"
 
 typedef struct outline_info
 {

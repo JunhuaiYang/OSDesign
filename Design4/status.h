@@ -12,5 +12,6 @@
 
 void ShowStatus(GtkWidget* vbox);
 gint GetTime(gpointer label);
+long int GetUptime(void);
 
 #endif // __STATUS_h__

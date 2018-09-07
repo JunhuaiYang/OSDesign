@@ -28,6 +28,8 @@ typedef struct memoinfo
     float swapredio;
 }MEMO_INFO, *p_memoinfo;
 
+extern MEMO_INFO memo_info;
+
 void CreateMemory(GtkWidget* notebook);
 long int GetOneMemoInfo(char *name);
 void ShowMemoInfo(GtkWidget *vbox);
