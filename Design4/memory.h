@@ -14,8 +14,8 @@ typedef struct memoinfo
 {
     long int MemTotal;
     long int MemFree;
-    long int Buffers;
-    long int Cached;
+    long int Buffers; //缓冲
+    long int Cached;  //缓存
     long int Active;
     long int Inactive;
 

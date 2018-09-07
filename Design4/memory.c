@@ -56,7 +56,8 @@ void CreateMemory(GtkWidget* notebook)
     ShowMemoInfo(vbox1);
     ShowSwapInfo(vbox3);
 
-    GetMemoInfo();
+    // 内存使用率
+    g_timeout_add(1000, UpdateMemo, NULL);
 }
 
 void ShowMemoInfo(GtkWidget *vbox)
@@ -88,17 +89,17 @@ void ShowMemoInfo(GtkWidget *vbox)
     set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox1), label);
 
-    label = gtk_label_new("总内存");
+    label = gtk_label_new("(已使用) 总内存");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
     set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox2), label);
 
-    label = gtk_label_new("剩余内存");
+    label = gtk_label_new("可用内存");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
     set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox3), label);
 
-    label = gtk_label_new("缓冲区大小 / 缓存区大小");
+    label = gtk_label_new("已缓冲 / 已缓存");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
     set_widget_font_size(label, 14, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox4), label);
@@ -157,17 +158,17 @@ void ShowSwapInfo(GtkWidget *vbox)
     set_widget_font_size(label, 12, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox1), label);
 
-    label = gtk_label_new("总交换分区");
+    label = gtk_label_new("(已使用) 总交换分区");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
     set_widget_font_size(label, 12, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox2), label);
 
-    label = gtk_label_new("等待写回的数据大小");
+    label = gtk_label_new("可用交换分区");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
     set_widget_font_size(label, 12, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox3), label);
 
-    label = gtk_label_new("正在写回的数据大小");
+    label = gtk_label_new("等待写回 / 正在写回");
     gtk_misc_set_alignment(GTK_MISC(label), 0, 0.5);
     set_widget_font_size(label, 12, FALSE);
     gtk_container_add(GTK_CONTAINER(vbox4), label);
@@ -217,7 +218,7 @@ long int GetOneMemoInfo(char *name)
 void GetMemoInfo(void)
 {
     memo_info.MemTotal = GetOneMemoInfo("MemTotal") ;
-    memo_info.MemFree = GetOneMemoInfo("MemFree") ;
+    memo_info.MemFree = GetOneMemoInfo("MemAvailable") ; //MemAvailable 才是系统可用内存 Free是剩余内存
     memo_info.Buffers = GetOneMemoInfo("Buffers") ;
     memo_info.Cached = GetOneMemoInfo("Cached") ;
     memo_info.Active = GetOneMemoInfo("Active") ;
@@ -231,10 +232,42 @@ void GetMemoInfo(void)
     memo_info.memoredio = (float)(memo_info.MemTotal - memo_info.MemFree) / memo_info.MemTotal *100;
     memo_info.swapredio = (float)(memo_info.SwapTotal - memo_info.SwapFree) / memo_info.SwapTotal *100;
 
-    printf("%f %f\n", memo_info.memoredio,  memo_info.swapredio);
 }
 
 gint UpdateMemo(gpointer data)
 {
-    
+    char string[128];
+    // 更新信息
+    GetMemoInfo();
+
+    sprintf(string, "%.2f %%", memo_info.memoredio);
+    gtk_label_set_text(GTK_LABEL(label_memo_1), string);
+
+    sprintf(string, "(%.2fG) %.2fG", (memo_info.MemTotal - memo_info.MemFree) / 1024.0 /1024.0 ,
+                    memo_info.MemTotal / 1024.0 /1024.0);
+    gtk_label_set_text(GTK_LABEL(label_memo_2), string);
+
+    sprintf(string, "%.2fM", memo_info.MemFree / 1024.0);
+    gtk_label_set_text(GTK_LABEL(label_memo_3), string);
+
+    sprintf(string, "%.2fM / %.2fM ", memo_info.Buffers / 1024.0, memo_info.Cached /1024.0);
+    gtk_label_set_text(GTK_LABEL(label_memo_4), string);
+
+    sprintf(string, "%.2fM / %.2fM ", memo_info.Active / 1024.0, memo_info.Inactive /1024.0);
+    gtk_label_set_text(GTK_LABEL(label_memo_5), string);
+
+    sprintf(string, "%.2f %%", memo_info.swapredio);
+    gtk_label_set_text(GTK_LABEL(label_memo_6), string);
+
+    sprintf(string, "(%.2fM) %.2fG", (memo_info.SwapTotal - memo_info.SwapFree) / 1024.0 ,
+                     memo_info.SwapTotal / 1024.0 / 1024.0);
+    gtk_label_set_text(GTK_LABEL(label_memo_7), string);
+
+    sprintf(string, "%.2fM", memo_info.SwapFree /1024.0);
+    gtk_label_set_text(GTK_LABEL(label_memo_8), string);
+
+    sprintf(string, "%.2fM / %.2fM",memo_info.Dirty / 1024.0, memo_info.Writeback /1024.0);
+    gtk_label_set_text(GTK_LABEL(label_memo_9), string);
+
+    return 1;
 }
