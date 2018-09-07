@@ -50,9 +50,8 @@ void CreateCPU(GtkWidget *notebook)
     gtk_container_add(GTK_CONTAINER(CPU_frame3), vbox3);
 
     ShowCPUInfo(vbox3);
-
-    // CPU使用率刷新
     ShowRatio(vbox1);
+    // CPU使用率刷新
     g_timeout_add(1000, UpdateRatio, NULL);
 }
 
@@ -112,7 +111,8 @@ void GetProcessor(char *str)
     }
     read(fd, buf, sizeof(buf));
 
-    unsigned int i = strstrcount(buf, "model");
+    // 查找多少个子串
+    unsigned int i = strstrcount(buf, "processor");
 
     sprintf(str, "%hd", i);
 }

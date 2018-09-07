@@ -37,7 +37,7 @@ static int mydev_open(struct inode *inode, struct file *filp)
 {
   // MAJOR和MINOR返回主次设备号
   printk("mydev: Main device number is %d  \n Slave device number is %d\n", MAJOR(inode->i_rdev), MINOR(inode->i_rdev));
-  printk("mydev: Now device has opend! \n")
+  printk("mydev: Now device has opend! \n");
   // 未被占用
   if (open_process == 0)
   {
