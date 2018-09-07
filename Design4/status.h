@@ -9,6 +9,8 @@
 #define __STATUS_h__
 
 #include "MainWindow.h"
+#include "cpu.h"
+#include "memory.h"
 
 void ShowStatus(GtkWidget* vbox);
 gint GetTime(gpointer label);
