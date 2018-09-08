@@ -10,6 +10,8 @@
 
 #include "MainWindow.h"
 
+#define LENGTH_M 100
+
 typedef struct memoinfo
 {
     long int MemTotal;
@@ -36,6 +38,14 @@ void ShowMemoInfo(GtkWidget *vbox);
 void ShowSwapInfo(GtkWidget *vbox);
 void GetMemoInfo(void);
 gint UpdateMemo(gpointer data);
+gboolean m_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer data);
+gboolean m_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer data);
+gboolean s_configure_event(GtkWidget *widget, GdkEventConfigure *event, gpointer data);
+gboolean s_expose_event(GtkWidget *widget, GdkEventExpose *event, gpointer data);
+
+
+void DrawMemGraph(void);
+void DrawSwapGraph(void);
 
 
 #endif // __MEMORY_h__

@@ -17,6 +17,7 @@
         "typeinfo": "cpp",
         "array": "cpp",
         "memory.c": "c",
-        "status.h": "c"
+        "status.h": "c",
+        "memory.h": "c"
     }
 }
