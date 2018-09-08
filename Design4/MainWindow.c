@@ -15,10 +15,11 @@
 #include "process.h"
 #include "disk.h"
 
+GtkWidget *window;
+
 int main(int argc, char **argv)
 {
 
-	GtkWidget *window;
 	GtkWidget *main_vbox;
 
 	gtk_init(&argc, &argv);

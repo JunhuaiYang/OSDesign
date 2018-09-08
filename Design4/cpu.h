@@ -8,6 +8,8 @@
 #ifndef __CPU_h__
 #define __CPU_h__
 
+#define LENGTH 200 //绘图长度
+
 #include "MainWindow.h"
 
 
@@ -52,7 +54,11 @@ gint UpdateRatio(gpointer data);
 void GetStat(p_statinfo istat);
 void GetCpuUseRatio(void);
 
+gboolean cpu_configure_event (GtkWidget *widget, GdkEventConfigure *event, gpointer data);
+gboolean cpu_expose_event (GtkWidget *widget, GdkEventExpose *event, gpointer data);
 
+
+void DrawCPUGraph(void);
 
 
 

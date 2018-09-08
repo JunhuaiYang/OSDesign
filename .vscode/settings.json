@@ -16,6 +16,7 @@
         "string.h": "c",
         "typeinfo": "cpp",
         "array": "cpp",
-        "memory.c": "c"
+        "memory.c": "c",
+        "status.h": "c"
     }
 }
