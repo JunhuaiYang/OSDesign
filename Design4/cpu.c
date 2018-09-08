@@ -132,14 +132,20 @@ unsigned int strstrcount(char *str1, char *str2)
 
 void GetProcessor(char *str)
 {
-    char buf[20000];
-    int fd;
-    if ((fd = open("/proc/cpuinfo", O_RDONLY)) == -1)
-    {
-        perror("fail to cpuinfo");
-        return;
-    }
-    read(fd, buf, sizeof(buf));
+    char buf[10240];
+    // 不止为何 read不能读取全部文件
+    // int fd;
+    // if ((fd = open("/proc/cpuinfo", O_RDONLY)) == -1)
+    // {
+    //     perror("fail to cpuinfo");
+    //     return;
+    // }
+    // count = read(fd, buf, sizeof(buf));
+    // close(fd);
+    FILE *fp;
+    fp = fopen("/proc/cpuinfo", "r");
+    fread(buf, 1, sizeof(buf), fp);
+    fclose(fp);
 
     // 查找多少个子串
     unsigned int i = strstrcount(buf, "processor");
