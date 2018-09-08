@@ -26,7 +26,7 @@ int main(int argc, char **argv)
 	// 主窗口设置
 	window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
 	gtk_window_set_title(GTK_WINDOW(window), "系统监视器");
-	gtk_window_set_opacity(GTK_WINDOW(window), 0.9); // 设置透明度函数
+	gtk_window_set_opacity(GTK_WINDOW(window), 0.90); // 设置透明度函数
 	// 窗口大小
 	gtk_window_set_default_size(GTK_WINDOW(window), 1000, 750);
 	// 窗口初始位置

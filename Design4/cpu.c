@@ -398,12 +398,9 @@ void DrawCPUGraph(void)
     // 设置风格
     GdkGC *gc = gdk_gc_new(GDK_DRAWABLE(cgraph));
     
-    GdkColor color2;
-    gdk_color_parse("#7070db", &color2);
-    gdk_gc_set_rgb_bg_color(gc, &color2);
 
-    // 清除位图，并初始化为白色
-    gdk_draw_rectangle(GDK_DRAWABLE(cgraph), window->style->white_gc, TRUE, 0, 0,
+    // 清除位图，并初始化为灰色
+    gdk_draw_rectangle(GDK_DRAWABLE(cgraph), window->style->dark_gc[4], TRUE, 0, 0,
                        cpu_draw_area->allocation.width,
                        cpu_draw_area->allocation.height);
 
@@ -425,7 +422,8 @@ void DrawCPUGraph(void)
     step_h = (float)height / LENGTH;
     // 设置颜色
     GdkColor color;
-    gdk_color_parse("#ffff1a", &color);
+    gdk_color_parse("#ffcc80", &color);
+    // 设置前景色的函数……
     gdk_gc_set_rgb_fg_color(gc, &color);
 
 
