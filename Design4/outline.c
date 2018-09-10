@@ -156,7 +156,7 @@ void ShowInfo(GtkWidget *vbox, OUTLINE_INFO oinfo)
     sprintf(text, "CPU\t\t\t：%s", oinfo.cpu);
     ShowLabel(vbox, text);
 
-    sprintf(text, "安装内存\t\t\t：%s", oinfo.memory);
+    sprintf(text, "安装内存\t\t：%s", oinfo.memory);
     ShowLabel(vbox, text);
 
     ShowLabel(vbox, " ");

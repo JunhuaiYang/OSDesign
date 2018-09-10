@@ -9,8 +9,10 @@
 #define __PROCESS_h__
 
 #include "MainWindow.h"
+#include "cpu.h"
 
-#define P_COLUMN 5
+#define P_COLUMN 6
+#define MAX_P 200
 
 enum
 {
@@ -19,6 +21,7 @@ enum
     STATUS_COLUMN, //进程状态列
     CPU_COLUMN,  //CPU信息列
     MEMORY_COLUMN,//内存信息列
+    PRIORITY_COLUMN,//内存信息列
     NP_COLUMNS
 };
 

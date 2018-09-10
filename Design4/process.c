@@ -8,12 +8,14 @@
 
 #include "process.h"
 
+long int p_cpu_time_o[MAX_P];
+long int cpu_all_o;
+
 void CreateProcess(GtkWidget *notebook)
 {
 
     GtkWidget *vbox;
     GtkWidget *scrolled_window;
-    GtkWidget *hbox;
     GtkListStore *process_store;
     GtkWidget *ptree_view;
     GtkCellRenderer *renderer;
@@ -21,7 +23,7 @@ void CreateProcess(GtkWidget *notebook)
 
     int i;
 
-    char *name[P_COLUMN] = {"PID", "进程名", "状态", "CPU", "占用内存"};
+    char *name[P_COLUMN] = {"PID", "进程名", "状态", "CPU", "占用内存", "优先级"};
 
     // 创建盒装容器并添加
     vbox = gtk_vbox_new(FALSE, 3);
@@ -63,63 +65,127 @@ void CreateProcess(GtkWidget *notebook)
     GetProcessInfo(process_store);
 }
 
-void GetInfo(char *string, char **info)
+void GetInfo(char *string, char *info[])
 {
     int i;
     char *delim = " ";               //分隔符 一个空格
     info[0] = strtok(string, delim); //以delim分隔符切割string
-    printf("%d:%s\n",0, info[0]);
     // 总共有52项
     for (i = 1; i < 50; i++)
     {
         // 第二次调用strtok要传NULL
-        info[i] = strtok(NULL, delim); 
-        printf("%d:%s\n",i, info[i]);
+        info[i] = strtok(NULL, delim);
     }
 }
 
 void GetProcessInfo(GtkListStore *store)
 {
     DIR *dir;
-    int fd, i,num = 0;
+    int fd;
     GtkTreeIter iter;
     struct dirent *entry;
     char dir_buf[256];
     char buffer[1024];
-    char *info[50];
+    char *info[24];
+    char *delim = " "; //分隔符 一个空格
+
     char process_name[50];
     char process_status[30];
+    char memo_size[20];
+    char ratio[20];
 
+    long int utime_now, stime_now, cutime_now, cstime_now;
+    long int p_cpu_time, cpu_all;
+    int page;
+    float p_ratio;
+    int num; //用于遍历
+    int i;
 
     //用opendir打开一个与给定目录名相对应的目录流
-    dir = opendir ("/proc");
-    while ((entry = readdir (dir)) != NULL )
+    dir = opendir("/proc");
+    cpu_all = stat_info.user + stat_info.nice + stat_info.sys +
+              stat_info.idle + stat_info.iowait + stat_info.irq +
+              stat_info.softirq;
+
+    while ((entry = readdir(dir)) != NULL)
     {
         // 筛选名字为数字的文件夹
         if ((entry->d_name[0] >= '0') && (entry->d_name[0] <= '9'))
         {
             // 生成文件名
-            sprintf (dir_buf, "/proc/%s/stat", entry->d_name);
-            fd = open (dir_buf, O_RDONLY);//只读打开
-            read (fd, buffer, sizeof (buffer));
-            close (fd);
+            sprintf(dir_buf, "/proc/%s/stat", entry->d_name);
+            fd = open(dir_buf, O_RDONLY); //只读打开
+            read(fd, buffer, sizeof(buffer));
+            close(fd);
 
-            GetInfo(buffer, info);
+            info[0] = strtok(buffer, delim); //以delim分隔符切割string
+            printf("%d:%s\n",0, info[0]);
+            // 总共有52项  只需要前24项
+            for (i = 1; i < 24; i++)
+            {
+                // 第二次调用strtok要传NULL
+                info[i] = strtok(NULL, delim);
+                printf("%d:%s\n",i, info[i]);
+            }
         }
-        sscanf(info[1], "(%s)", process_name);
+        sscanf(info[1], "(%s", process_name);
+        process_name[strlen(process_name)-1] = '\0';
         
+        printf("%s\n", info[2]);
+        strcpy(process_status, info[2]);
         // 状态转换
-        if (!strcmp(buf[2], "S"))
-			strcpy(process_status, "睡眠中");
-		else if (!strcmp(buf[2], "R"))
-			strcpy(process_status, "运行中");
-		else if (!strcmp(buf[2], "T"))
-			strcpy(process_status, "已停止");
-		else if (!strcmp(buf[2], "D"))
-			strcpy(process_status, "不可中断");
-		else if (!strcmp(buf[2], "Z"))
-			strcpy(process_status, "死锁中");
+        // if (!strcmp(info[2], "S"))
+        //     strcpy(process_status, "睡眠中");
+        // else if (!strcmp(info[2], "R"))
+        //     strcpy(process_status, "运行中");
+        // else if (!strcmp(info[2], "T"))
+        //     strcpy(process_status, "已停止");
+        // else if (!strcmp(info[2], "D"))
+        //     strcpy(process_status, "不可中断");
+        // else if (!strcmp(info[2], "Z"))
+        //     strcpy(process_status, "死锁中");
 
+        // 获得cpu时间 4个cpu时间在13-16项中
+        // utime_now = atoi(info[13]);
+        // stime_now = atoi(info[14]);
+        // cutime_now = atoi(info[15]);
+        // cstime_now = atoi(info[16]);
+        // sscanf(info[13], "%ld", &utime_now);
+        // sscanf(info[14], "%ld", &stime_now);
+        // if(info[15] != NULL)
+        // sscanf(info[15], "%ld", &cutime_now);
+        // else
+        //     printf("%d", i);
+        // sscanf(info[16], "%ld", &cstime_now);
 
+        // 计算CPU使用率
+        // △（p_cpu_time) / △all
+        // p_cpu_time = utime_now+stime_now+cutime_now+cstime_now;
+
+        // p_ratio = (float) (p_cpu_time - p_cpu_time_o[num]) /
+        //                 (cpu_all - cpu_all_o);
+
+        sprintf(ratio, "%.2f%%", 100 * p_ratio);
+
+        // 23项为 驻留内存 page
+        sscanf(info[23], "%d", &page);
+        // 使用getpagesize获得系统内存页
+        sprintf(memo_size, "%.2fM", (float)page * getpagesize() / 1024.0 / 1024.0);
+
+        // 17 为动态优先级， 18为静态优先级
+
+        //     gtk_list_store_append (store, &iter);//增加到列表
+        //     gtk_list_store_set (store, &iter,
+        //                             PID_COLUMN,info[0],
+        //                             NAME_COLUMN,process_name,
+        //                             STATUS_COLUMN,process_status,
+        //                             CPU_COLUMN,ratio,
+        //                             MEMORY_COLUMN,memo_size,
+        //                             PRIORITY_COLUMN, info[18],
+        //                             -1);
+
+        // p_cpu_time_o[num] = p_cpu_time;
+        // num =(num+1) % MAX_P;
     }
+    cpu_all_o = cpu_all;
 }
