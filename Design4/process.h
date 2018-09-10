@@ -26,7 +26,6 @@ enum
 };
 
 void CreateProcess(GtkWidget* notebook);
-void GetInfo(char *string, char **info);
 void GetProcessInfo(GtkListStore *store);
 
 #endif // __PROCESS_h__

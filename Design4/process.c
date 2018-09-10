@@ -65,18 +65,6 @@ void CreateProcess(GtkWidget *notebook)
     GetProcessInfo(process_store);
 }
 
-void GetInfo(char *string, char *info[])
-{
-    int i;
-    char *delim = " ";               //分隔符 一个空格
-    info[0] = strtok(string, delim); //以delim分隔符切割string
-    // 总共有52项
-    for (i = 1; i < 50; i++)
-    {
-        // 第二次调用strtok要传NULL
-        info[i] = strtok(NULL, delim);
-    }
-}
 
 void GetProcessInfo(GtkListStore *store)
 {
@@ -86,13 +74,16 @@ void GetProcessInfo(GtkListStore *store)
     struct dirent *entry;
     char dir_buf[256];
     char buffer[1024];
-    char *info[24];
-    char *delim = " "; //分隔符 一个空格
 
-    char process_name[50];
     char process_status[30];
     char memo_size[20];
     char ratio[20];
+    char pid[10];
+    char process_name[50];
+    char status;
+    char priority[5];
+    char noneed[20];
+
 
     long int utime_now, stime_now, cutime_now, cstime_now;
     long int p_cpu_time, cpu_all;
@@ -118,21 +109,16 @@ void GetProcessInfo(GtkListStore *store)
             read(fd, buffer, sizeof(buffer));
             close(fd);
 
-            info[0] = strtok(buffer, delim); //以delim分隔符切割string
-            printf("%d:%s\n",0, info[0]);
-            // 总共有52项  只需要前24项
-            for (i = 1; i < 24; i++)
-            {
-                // 第二次调用strtok要传NULL
-                info[i] = strtok(NULL, delim);
-                printf("%d:%s\n",i, info[i]);
-            }
+            // 14-17cpu 19有先 24内存
+            sscanf(buffer,"%s (%s %c %s %s %s %s %s %s %s %s %s %s %ld %ld %ld %ld %s %s %s %s %ld",
+                    pid, process_name, &status, noneed, noneed, noneed, noneed, noneed, noneed, noneed,
+                     noneed, noneed, noneed, &utime_now, &stime_now, &cutime_now, &cstime_now, noneed, 
+                    priority,  noneed, noneed, noneed, noneed, &page  );
+
         }
-        sscanf(info[1], "(%s", process_name);
         process_name[strlen(process_name)-1] = '\0';
         
-        printf("%s\n", info[2]);
-        strcpy(process_status, info[2]);
+        printf("%s %s\n",pid, process_name);
         // 状态转换
         // if (!strcmp(info[2], "S"))
         //     strcpy(process_status, "睡眠中");
@@ -168,7 +154,6 @@ void GetProcessInfo(GtkListStore *store)
         sprintf(ratio, "%.2f%%", 100 * p_ratio);
 
         // 23项为 驻留内存 page
-        sscanf(info[23], "%d", &page);
         // 使用getpagesize获得系统内存页
         sprintf(memo_size, "%.2fM", (float)page * getpagesize() / 1024.0 / 1024.0);
 
