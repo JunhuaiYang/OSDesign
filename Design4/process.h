@@ -12,12 +12,12 @@
 #include "cpu.h"
 
 #define P_COLUMN 6
-#define MAX_P 200
+#define MAX_P 300
 
 enum
 {
-    NAME_COLUMN,  //进程名列
     PID_COLUMN,    //进程PID列
+    NAME_COLUMN,  //进程名列
     STATUS_COLUMN, //进程状态列
     CPU_COLUMN,  //CPU信息列
     MEMORY_COLUMN,//内存信息列
@@ -27,5 +27,6 @@ enum
 
 void CreateProcess(GtkWidget* notebook);
 void GetProcessInfo(GtkListStore *store);
+gboolean UpdateProcess (gpointer data);
 
 #endif // __PROCESS_h__
