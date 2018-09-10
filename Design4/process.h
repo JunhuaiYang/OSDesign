@@ -28,5 +28,11 @@ enum
 void CreateProcess(GtkWidget* notebook);
 void GetProcessInfo(GtkListStore *store);
 gboolean UpdateProcess (gpointer data);
+gboolean PopMenu(GtkWidget *widget, GdkEventButton *event, gpointer data); 
+gboolean KillProcess(gpointer data);
+void ShowErrorDialog(char *info);
+void ShowInfoDialog(char *info);
+gboolean StopProcess(gpointer data);
+gboolean ContinueProcess(gpointer data);
 
 #endif // __PROCESS_h__
