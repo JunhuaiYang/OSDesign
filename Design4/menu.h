@@ -11,5 +11,7 @@
 #include "MainWindow.h"
 
 void CreateMenuBar(GtkWidget *vbox);
+void MenuShutDown(GtkWidget *widget,gpointer data);
+void MenuReboot(GtkWidget *widget,gpointer data);
 
 #endif // __MENU_h__
