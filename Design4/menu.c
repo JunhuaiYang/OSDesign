@@ -152,10 +152,25 @@ void ContinueAll(GtkWidget *widget,gpointer data)
 
 void Help(GtkWidget *widget,gpointer data)
 {
+    GtkWidget *dialog = gtk_about_dialog_new();
+    
+    gtk_about_dialog_set_name(GTK_ABOUT_DIALOG(dialog),"帮助");
+    gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dialog),
+    "系统监视器\n\n* 有系统概要、CPU使用情况、内存使用情况、\n进程信息、模块信息的显示\n* 可识别多个Linux系统的系统标志\n* 进程和模块通过右键菜单和对话框来交互\n* 设有菜单栏可进行暂停、恢复、关机等操作\n");
 
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
 }
 
 void About(GtkWidget *widget,gpointer data)
 {
+    GtkWidget *dialog = gtk_about_dialog_new();
+    gtk_about_dialog_set_program_name(GTK_ABOUT_DIALOG(dialog),"系统监视器");
+    gtk_about_dialog_set_version(GTK_ABOUT_DIALOG(dialog),"1.1");
+    gtk_about_dialog_set_copyright(GTK_ABOUT_DIALOG(dialog),"©YangJunhuai");
+    gtk_about_dialog_set_comments(GTK_ABOUT_DIALOG(dialog),"Linux下的系统监视器");
+    gtk_about_dialog_set_website(GTK_ABOUT_DIALOG(dialog),"https://github.com/JunhuaiYang/OSDesign");
 
+    gtk_dialog_run(GTK_DIALOG(dialog));
+    gtk_widget_destroy(dialog);
 }
