@@ -15,6 +15,7 @@
 #include "process.h"
 
 GtkWidget *window;
+gboolean g_update = TRUE;
 
 int main(int argc, char **argv)
 {

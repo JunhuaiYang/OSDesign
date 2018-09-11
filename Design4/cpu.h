@@ -41,6 +41,7 @@ typedef struct statinfo
 
 extern CPU_INFO cpu_info;
 extern STAT_INFO stat_info;
+extern gint cpu_graph[LENGTH];
 
 void CreateCPU(GtkWidget* notebook);
 void GetOneInfo(char *path, char *name, char* info);

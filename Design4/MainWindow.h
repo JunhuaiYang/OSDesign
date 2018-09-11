@@ -21,6 +21,7 @@
 #include <time.h>
 
 extern GtkWidget *window;
+extern gboolean g_update;
 
 void set_widget_font_size(GtkWidget *widget, int size, gboolean is_button);
 

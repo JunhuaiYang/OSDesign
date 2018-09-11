@@ -70,7 +70,7 @@ void CreateProcess(GtkWidget *notebook)
 
     GetStat(&stat_info);
     GetProcessInfo(process_store);
-    g_timeout_add(5000, UpdateProcess, NULL);
+    g_timeout_add(8000, UpdateProcess, NULL);
 }
 
 void GetProcessInfo(GtkListStore *store)
@@ -198,6 +198,9 @@ void GetProcessInfo(GtkListStore *store)
 
 gboolean UpdateProcess(gpointer data)
 {
+    if(g_update == FALSE)
+        return TRUE;
+
     gtk_list_store_clear(process_store);
     GetProcessInfo(process_store);
 
@@ -207,7 +210,7 @@ gboolean UpdateProcess(gpointer data)
 gboolean PopMenu(GtkWidget *widget, GdkEventButton *event, gpointer data)
 {
     GtkWidget *menu;
-    GtkWidget *kill, *pause_p, *continue_p;
+    GtkWidget *kill, *pause_p, *continue_p, *refresh;
     GtkTreeSelection *selection;
     GtkTreeModel *model;
     GtkTreeIter iter;
@@ -222,6 +225,9 @@ gboolean PopMenu(GtkWidget *widget, GdkEventButton *event, gpointer data)
             gtk_tree_model_get(model, &iter, PID_COLUMN, &pid, -1); //在书的相应列中获得该进程的PID
             g_pid = atoi(pid);                                      //字符串转换成长整数
             menu = gtk_menu_new();
+            refresh = gtk_menu_item_new_with_label("刷新");
+            g_signal_connect(G_OBJECT(refresh), "activate", G_CALLBACK(UpdateProcess), widget);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), refresh);
             kill = gtk_menu_item_new_with_label("杀死");
             g_signal_connect(G_OBJECT(kill), "activate", G_CALLBACK(KillProcess), widget);
             gtk_menu_shell_append(GTK_MENU_SHELL(menu), kill);

@@ -298,6 +298,9 @@ void GetMemoInfo(void)
 
 gint UpdateMemo(gpointer data)
 {
+    if(g_update == FALSE)
+        return TRUE;
+
     char string[128];
     // 更新信息
     GetMemoInfo();

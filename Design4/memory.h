@@ -31,6 +31,8 @@ typedef struct memoinfo
 }MEMO_INFO, *p_memoinfo;
 
 extern MEMO_INFO memo_info;
+extern gint swap_graph[LENGTH_M];
+extern gint mem_graph[LENGTH_M];
 
 void CreateMemory(GtkWidget* notebook);
 long int GetOneMemoInfo(char *name);

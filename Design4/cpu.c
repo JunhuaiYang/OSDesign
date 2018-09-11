@@ -293,6 +293,9 @@ void GetCpuUseRatio(void)
 
 gint UpdateRatio(gpointer data)
 {
+    if(g_update == FALSE)
+        return TRUE;
+        
     char string[128];
     // 更新信息
     GetStat(&stat_info);

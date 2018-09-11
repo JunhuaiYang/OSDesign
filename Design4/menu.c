@@ -76,16 +76,86 @@ void CreateMenuBar(GtkWidget *vbox)
     // 信号处理
     g_signal_connect(G_OBJECT(quit), "activate", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(G_OBJECT(shutdown), "activate", G_CALLBACK(MenuShutDown), NULL);
-    g_signal_connect(G_OBJECT(reboot), "activate", G_CALLBACK(gtk_main_quit), NULL);
+    g_signal_connect(G_OBJECT(reboot), "activate", G_CALLBACK(MenuReboot), NULL);
+    g_signal_connect(G_OBJECT(update), "activate", G_CALLBACK(ReFreshAll), NULL);
+    g_signal_connect(G_OBJECT(pauseit), "activate", G_CALLBACK(StopAll), NULL);
+    g_signal_connect(G_OBJECT(pcontinue), "activate", G_CALLBACK(ContinueAll), NULL);
+    g_signal_connect(G_OBJECT(helpit), "activate", G_CALLBACK(Help), NULL);
+    g_signal_connect(G_OBJECT(about), "activate", G_CALLBACK(About), NULL);
 }
 
 
 void MenuShutDown(GtkWidget *widget,gpointer data)
 {
+    int result;
+    GtkWidget *dialog; //声明一个对话框
 
+    dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+                                    GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "你确定要关机吗？");
+    gtk_window_set_title(GTK_WINDOW(dialog), "关机");
+    result = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    if (result == GTK_RESPONSE_YES)
+    {
+        system("shutdown -t 0");
+    }
+    gtk_widget_destroy(dialog); //删除对话框
 }
 
 void MenuReboot(GtkWidget *widget,gpointer data)
+{
+    int result;
+    GtkWidget *dialog; //声明一个对话框
+
+    dialog = gtk_message_dialog_new(NULL, GTK_DIALOG_DESTROY_WITH_PARENT,
+                                    GTK_MESSAGE_QUESTION, GTK_BUTTONS_YES_NO, "你确定要重启吗？");
+    gtk_window_set_title(GTK_WINDOW(dialog), "重启");
+    result = gtk_dialog_run(GTK_DIALOG(dialog));
+
+    if (result == GTK_RESPONSE_YES)
+    {
+        system("reboot");
+    }
+    gtk_widget_destroy(dialog); //删除对话框
+}
+
+void ReFreshAll(GtkWidget *widget,gpointer data)
+{
+    int i;
+
+    UpdateProcess(NULL);
+    ModuleRefresh(NULL);
+
+    // 清空绘图缓存
+    for (i = 0; i < LENGTH; i++)
+        cpu_graph[i] = LENGTH;
+    // mem_graph 初始化
+    for (i = 0; i < LENGTH_M; i++)
+        mem_graph[i] = LENGTH_M;
+    // swap_graph 初始化
+    for (i = 0; i < LENGTH_M; i++)
+        swap_graph[i] = LENGTH_M;
+
+    UpdateRatio(NULL);
+    UpdateMemo(NULL);
+}
+
+void StopAll(GtkWidget *widget,gpointer data)
+{
+    g_update = FALSE;
+}
+
+void ContinueAll(GtkWidget *widget,gpointer data)
+{
+    g_update = TRUE;
+}
+
+void Help(GtkWidget *widget,gpointer data)
+{
+
+}
+
+void About(GtkWidget *widget,gpointer data)
 {
 
 }

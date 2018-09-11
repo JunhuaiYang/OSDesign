@@ -22,6 +22,9 @@ void ShowStatus(GtkWidget *vbox)
 // 定时器回调
 gint GetTime(gpointer label)
 {
+    if(g_update == FALSE)
+        return TRUE;
+        
     time_t t;
     char string[150];
     time(&t); //获得系统时间
