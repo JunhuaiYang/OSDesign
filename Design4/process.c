@@ -29,7 +29,7 @@ void CreateProcess(GtkWidget *notebook)
 
     // 创建盒装容器并添加
     vbox = gtk_vbox_new(FALSE, 3);
-    gtk_container_border_width(GTK_CONTAINER(vbox), 2);
+    gtk_container_border_width(GTK_CONTAINER(vbox), 5);
 
     /* 将该标签页加入到notebook中 */
     gtk_notebook_append_page(GTK_NOTEBOOK(notebook), vbox, gtk_label_new("进程"));
