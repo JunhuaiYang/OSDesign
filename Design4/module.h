@@ -9,6 +9,7 @@
 #define __MODULE_h__
 
 #include "MainWindow.h"
+#include "process.h"
 
 #define M_COLUMN 4
 
@@ -22,5 +23,12 @@ enum
 };
 
 void CreateModule(GtkWidget* notebook);
+void GetModulesInfo(GtkListStore *store);
+gboolean PopModuleMenu(GtkWidget *widget, GdkEventButton *event, gpointer data);
+gboolean ModuleRefresh(gpointer data);
+gboolean ModuleNew(gpointer data);
+gboolean ModuleDestory(gpointer data);
+void NewModule(GtkWidget *w,GtkFileSelection *fs);
+void DestroyFs(GtkWidget *w,GtkFileSelection *fs);
 
 #endif // __MODULE_h__

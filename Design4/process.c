@@ -198,8 +198,8 @@ void GetProcessInfo(GtkListStore *store)
 
 gboolean UpdateProcess(gpointer data)
 {
-    gtk_list_store_clear(process_store); //Clear treeview
-    GetProcessInfo(process_store);       //Re-read Process_info
+    gtk_list_store_clear(process_store);
+    GetProcessInfo(process_store);
 
     return TRUE;
 }
@@ -221,21 +221,20 @@ gboolean PopMenu(GtkWidget *widget, GdkEventButton *event, gpointer data)
         {
             gtk_tree_model_get(model, &iter, PID_COLUMN, &pid, -1); //在书的相应列中获得该进程的PID
             g_pid = atoi(pid);                                      //字符串转换成长整数
+            menu = gtk_menu_new();
+            kill = gtk_menu_item_new_with_label("杀死");
+            g_signal_connect(G_OBJECT(kill), "activate", G_CALLBACK(KillProcess), widget);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), kill);
+            pause_p = gtk_menu_item_new_with_label("暂停");
+            g_signal_connect(G_OBJECT(pause_p), "activate", G_CALLBACK(StopProcess), widget);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), pause_p);
+            continue_p = gtk_menu_item_new_with_label("继续");
+            g_signal_connect(G_OBJECT(continue_p), "activate", G_CALLBACK(ContinueProcess), widget);
+            gtk_menu_shell_append(GTK_MENU_SHELL(menu), continue_p);
+            gtk_widget_show_all(GTK_WIDGET(menu));
+            gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, event->button, event->time);
+            return TRUE;
         }
-
-        menu = gtk_menu_new();
-        kill = gtk_menu_item_new_with_label("杀死");
-        g_signal_connect(G_OBJECT(kill), "activate", G_CALLBACK(KillProcess), widget);
-        gtk_menu_shell_append(GTK_MENU_SHELL(menu), kill);
-        pause_p = gtk_menu_item_new_with_label("暂停");
-        g_signal_connect(G_OBJECT(pause_p), "activate", G_CALLBACK(StopProcess), widget);
-        gtk_menu_shell_append(GTK_MENU_SHELL(menu), pause_p);
-        continue_p = gtk_menu_item_new_with_label("继续");
-        g_signal_connect(G_OBJECT(continue_p), "activate", G_CALLBACK(ContinueProcess), widget);
-        gtk_menu_shell_append(GTK_MENU_SHELL(menu), continue_p);
-        gtk_widget_show_all(GTK_WIDGET(menu));
-        gtk_menu_popup(GTK_MENU(menu), NULL, NULL, NULL, NULL, event->button, event->time);
-        return TRUE;
     }
     return FALSE;
 }
