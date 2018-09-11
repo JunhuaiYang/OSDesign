@@ -13,7 +13,6 @@
 #include "module.h"
 #include "status.h"
 #include "process.h"
-#include "disk.h"
 
 GtkWidget *window;
 
@@ -60,7 +59,6 @@ int main(int argc, char **argv)
 	CreateMemory(notebook);
 	CreateProcess(notebook);
 	CreateModule(notebook);
-	CreateDisk(notebook);
 
 	// 状态栏
 	ShowStatus(main_vbox);
