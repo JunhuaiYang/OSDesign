@@ -70,7 +70,7 @@ void CreateProcess(GtkWidget *notebook)
 
     GetStat(&stat_info);
     GetProcessInfo(process_store);
-    g_timeout_add(8000, UpdateProcess, NULL);
+    g_timeout_add(5000, UpdateProcess, NULL);
 }
 
 void GetProcessInfo(GtkListStore *store)
