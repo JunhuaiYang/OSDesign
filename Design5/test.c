@@ -85,7 +85,7 @@ int main()
     char *arg[] = {"vim", BUFF, NULL};
     int i, quit = 0, choice, status;
 
-    Disk = fopen(DISK, "r+");
+    Disk = fopen(DISK, "w+");
     init_fs();
 
     while (1)

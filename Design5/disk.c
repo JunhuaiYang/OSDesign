@@ -1,5 +1,8 @@
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <unistd.h>
+/***********************************************************************
+ * @file disk.c
+     DISK
+ * @brief   source file
+ *
+ * @Copyright (C)  2018  YangJunhuai. all right reserved
+***********************************************************************/
 
