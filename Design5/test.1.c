@@ -2,15 +2,17 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
-#define INODE_NUM 5012      //i节点数目
+#include <sys/wait.h>
+
+#define INODE_NUM 2048         //i节点数目
 #define BLOCK_NUM (100 * 1024) //磁盘块的数目
-#define BLOCK_SIZE 1024       //磁盘块大小为1K
-#define BlkPerNode 1024    //每个文件包含的最大的磁盘块数目
-#define DISK "disk.txt"
-#define BUFF "buff.txt"                                  //读写文件时的缓冲文件
-#define SuperBeg 0                                       //超级块的起始地址
+#define BLOCK_SIZE 1024        //磁盘块大小为1K
+#define BlkPerNode 1024        //每个文件包含的最大的磁盘块数目
+#define DISK "disk.img"
+#define BUFF "buff.txt"                                     //读写文件时的缓冲文件
+#define SuperBeg 0                                          //超级块的起始地址
 #define InodeBeg sizeof(SUPER_BLOCK)                        //i节点区启示地址
-#define BlockBeg (InodeBeg + INODE_NUM * sizeof(INODE))   //数据区起始地址
+#define BlockBeg (InodeBeg + INODE_NUM * sizeof(INODE))     //数据区起始地址
 #define MaxDirNum (BlkPerNode * (BLOCK_SIZE / sizeof(DIR))) //每个目录最大的文件数
 #define DirPerBlk (BLOCK_SIZE / sizeof(DIR))                //每个磁盘块包含的最大目录项
 #define D_DIR 0
@@ -19,10 +21,10 @@
 
 typedef struct superblk
 {
-    int inode_map[INODE_NUM]; //i节点位图
-    int blk_map[BLOCK_NUM];     //磁盘块位图
-    int inode_used;          //已被使用的i节点数目
-    int blk_used;            //已被使用的磁盘块数目
+    char inode_map[INODE_NUM]; //i节点位图
+    char blk_map[BLOCK_NUM];   //磁盘块位图
+    int inode_used;            //已被使用的i节点数目
+    int blk_used;              //已被使用的磁盘块数目
 } SUPER_BLOCK;
 
 typedef struct inode
@@ -43,11 +45,9 @@ DIR dir_table[MaxDirNum]; //将当前目录文件的内容都载入内存
 int dir_num;              //相应编号的目录项数
 int inode_num;            //当前目录的inode编号
 INODE curr_inode;         //当前目录的inode结构
-SUPER_BLOCK super_blk;       //文件系统的超级块
+SUPER_BLOCK super_blk;    //文件系统的超级块
 FILE *Disk;
 
-/*指令集合*/
-char *command[] = {"fmt", "quit", "mkdir", "rmdir", "cd", "ls", "mk", "rm", "vim"};
 char path[40] = "monster: root";
 
 int init_fs(void);   //初始化文件系统
@@ -81,45 +81,33 @@ void change_path(char *);
 
 int main()
 {
-    char comm[30], name[30];
+    char command[30], name[30];
     char *arg[] = {"vim", BUFF, NULL};
-    int i, quit = 0, choice, status;
+    int i, quit = 0, choice;
 
-    Disk = fopen(DISK, "w+");
+    Disk = fopen(DISK, "at+");
     init_fs();
 
     while (1)
     {
         printf("%s# ", path);
-        scanf("%s", comm);
-        choice = -1;
+        scanf("%s", command);
 
-        for (i = 0; i < CommanNum; ++i)
+        if (!strcmp(command, "quit") || !strcmp(command, "exit"))
         {
-            if (strcmp(comm, command[i]) == 0)
-            {
-                choice = i;
-                break;
-            }
+            break;
         }
-
-        switch (choice)
+        else if (!strcmp(command, "fmt"))
         {
-        /*格式化文件系统*/
-        case 0:
             format_fs();
-            break;
-        /*退出文件系统*/
-        case 1:
-            quit = 1;
-            break;
-        /*创建子目录*/
-        case 2:
+        }
+        else if (!strcmp(command, "mkdir"))
+        {
             scanf("%s", name);
             make_file(inode_num, name, D_DIR);
-            break;
-        /*删除子目录*/
-        case 3:
+        }
+        else if (!strcmp(command, "rmdir"))
+        {
             scanf("%s", name);
             if (type_check(name) != D_DIR)
             {
@@ -127,9 +115,9 @@ int main()
                 break;
             }
             del_file(inode_num, name, 0);
-            break;
-        /*进入子目录*/
-        case 4:
+        }
+        else if (!strcmp(command, "cd"))
+        {
             scanf("%s", name);
             if (type_check(name) != D_DIR)
             {
@@ -140,18 +128,18 @@ int main()
             {
                 change_path(name); //改变路径前缀
             }
-            break;
-        /*显示目录内容*/
-        case 5:
+        }
+        else if (!strcmp(command, "ls"))
+        {
             show_dir(inode_num);
-            break;
-        /*创建文件*/
-        case 6:
+        }
+        else if (!strcmp(command, "mk"))
+        {
             scanf("%s", name);
             make_file(inode_num, name, D_FILE);
-            break;
-        /*删除文件*/
-        case 7:
+        }
+        else if (!strcmp(command, "rm"))
+        {
             scanf("%s", name);
             if (type_check(name) != D_FILE)
             {
@@ -159,9 +147,9 @@ int main()
                 break;
             }
             del_file(inode_num, name, 0);
-            break;
-        /*对文件进行编辑*/
-        case 8:
+        }
+        else if (!strcmp(command, "vim"))
+        {
             scanf("%s", name);
             if (type_check(name) != D_FILE)
             {
@@ -174,15 +162,13 @@ int main()
             {
                 execvp("vim", arg);
             }
-            wait(&status);
+            wait(NULL);
             file_write(name); //将数据从BUFF写入文件
-            break;
-        default:
-            printf("%s command not found\n", comm);
         }
-
-        if (quit)
-            break;
+        else
+        {
+            printf("%s command not found\n", command);
+        }
     }
     close_fs();
 
@@ -195,8 +181,7 @@ int init_fs(void)
     fseek(Disk, SuperBeg, SEEK_SET);
     fread(&super_blk, sizeof(SUPER_BLOCK), 1, Disk); //读取超级块
 
-    inode_num = 0; //当前根目录的inode为0
-
+    inode_num = 0;
     if (!open_dir(inode_num))
     {
         printf("CANT'T OPEN ROOT DIRECTORY\n");
@@ -259,7 +244,6 @@ int open_dir(int inode)
 
     /*读出相应的i节点*/
     fread(&curr_inode, sizeof(INODE), 1, Disk);
-    //	printf("%d\n",curr_inode.file_size);
 
     for (i = 0; i < curr_inode.blk_num - 1; ++i)
     {
