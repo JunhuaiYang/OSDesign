@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Wall
 OBJS = main.o disk.o file.o
-TARGET = cacu
+TARGET = filesystem
 RM = rm -f
 
 $(TARGET):$(OBJS)
