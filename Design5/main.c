@@ -19,9 +19,9 @@ int main()
     //创建根目录
     initRootDir();
 
-    help();
+    printf("\nWelcome to Simple File System! \n\n");
     char command[20];
-    printf("junhuai@yjh: $ ");
+    printf("junhuai@yjh:\e[1;32m%s\e[0m$ ", getPath());
     // 判断命令是否操作
     scanf("%s", command);
     while (strcmp(command, "quit") && strcmp(command, "exit"))
@@ -116,7 +116,7 @@ int main()
         }
 
         // 颜色显示  用绿色显示当前目录
-        printf("junhuai@yjh: \e[1;32m%s\e[0m $ ", getPath());
+        printf("junhuai@yjh:\e[1;32m%s\e[0m$ ", getPath());
         scanf("%s", command);
     }
     exitSystem();

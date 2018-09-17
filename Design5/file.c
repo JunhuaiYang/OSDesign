@@ -10,7 +10,7 @@
 
 DIR_TABLE *rootDirTable;    //根目录
 DIR_TABLE *currentDirTable; //当前位置
-char path[200];             //保存当前绝对路径
+char path[256];             //保存当前绝对路径 字符串
 
 //初始化根目录
 void initRootDir()
@@ -26,8 +26,8 @@ void initRootDir()
 
     currentDirTable = rootDirTable;
     //初始化初始绝对路径
-    path[0] = '\\';
-    path[1] = '\0';
+    path[0] = '/';
+    path[1] = '\0';  //字符串尾
 }
 //获得绝对路径
 char *getPath()
@@ -82,7 +82,7 @@ int changeDir(char dirName[])
         //回退绝对路径
         int len = strlen(path);
         for (int i = len - 2; i >= 0; i--)
-            if (path[i] == '\\')
+            if (path[i] == '/')
             {
                 path[i + 1] = '\0';
                 break;
@@ -91,7 +91,7 @@ int changeDir(char dirName[])
     else
     {
         strcat(path, dirName);
-        strcat(path, "\\");
+        strcat(path, "/");
     }
 
     return 0;
