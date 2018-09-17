@@ -22,7 +22,6 @@ void initRootDir()
     rootDirTable = (DIR_TABLE *)getBlockAddr(startBlock);
     rootDirTable->dirUnitAmount = 0;
     //将自身作为父级目录
-    //addDirUnit(rootDirTable, "..", 0, startBlock);
 
     currentDirTable = rootDirTable;
     //初始化初始绝对路径
@@ -58,22 +57,23 @@ void showDir()
     printf("\n");
 }
 //切换目录 cd
-int changeDir(char dirName[])
+int ChangeDir(char dirName[])
 {
     //目录项在目录位置
-    int unitIndex = findUnitInTable(currentDirTable, dirName);
+    int unitIndex = FindDIRinTable(currentDirTable, dirName);
     //不存在
     if (unitIndex == -1)
     {
         printf("file not found\n");
         return -1;
     }
-    if (currentDirTable->dirs[unitIndex].type == 1)
+    if (currentDirTable->dirs[unitIndex].type == F_FILE)
     {
         printf("not a dir\n");
         return -1;
     }
-    //修改当前目录
+
+    //获得盘块
     int dirBlock = currentDirTable->dirs[unitIndex].startBlock;
     currentDirTable = (DIR_TABLE *)getBlockAddr(dirBlock);
     //修改全局绝对路径
@@ -99,7 +99,7 @@ int changeDir(char dirName[])
 //修改文件名或者目录名 mv
 int changeName(char oldName[], char newName[])
 {
-    int unitIndex = findUnitInTable(currentDirTable, oldName);
+    int unitIndex = FindDIRinTable(currentDirTable, oldName);
     if (unitIndex == -1)
     {
         printf("file not found\n");
@@ -131,31 +131,39 @@ int creatFile(char fileName[], int fileSize)
     if (creatFCB(FCBBlock, FileBlock, fileSize) == -1)
         return -1;
     //添加到目录项
-    if (addDirUnit(currentDirTable, fileName, 1, FCBBlock) == -1)
+    if (AddDIR(currentDirTable, fileName, 1, FCBBlock) == -1)
         return -1;
 
     return 0;
 }
+
 //创建目录 mkdir
 int creatDir(char dirName[])
 {
-    if (strlen(dirName) >= 59)
+    if (strlen(dirName) >= MAX_FILE_NAME)
     {
-        printf("file name too long\n");
+        printf("file name too long !\n");
+        return -1;
+    }
+    // 检测是否有 /
+    if(strchr(dirName, '/') != NULL)
+    {
+        printf("file name can not have '/' !\n");
         return -1;
     }
     //为目录表分配空间
     int dirBlock = getBlock(1);
     if (dirBlock == -1)
         return -1;
+
     //将目录作为目录项添加到当前目录
-    if (addDirUnit(currentDirTable, dirName, 0, dirBlock) == -1)
+    if (AddDIR(currentDirTable, dirName, 0, dirBlock) == -1)
         return -1;
     //为新建的目录添加一个到父目录的目录项
     DIR_TABLE *newTable = (DIR_TABLE *)getBlockAddr(dirBlock);
     newTable->dirUnitAmount = 0;
     char parent[] = "..";
-    if (addDirUnit(newTable, parent, 0, getAddrBlock((char *)currentDirTable)) == -1)
+    if (AddDIR(newTable, parent, 0, getAddrBlock((char *)currentDirTable)) == -1)
         return -1;
     return 0;
 }
@@ -172,7 +180,7 @@ int creatFCB(int fcbBlockNum, int fileBlockNum, int fileSize)
     return 0;
 }
 //添加目录项
-int addDirUnit(DIR_TABLE *myDirTable, char fileName[], int type, int FCBBlockNum)
+int AddDIR(DIR_TABLE *myDirTable, char fileName[], int type, int FCBBlockNum)
 {
     //获得目录表
     int dirUnitAmount = myDirTable->dirUnitAmount;
@@ -184,7 +192,7 @@ int addDirUnit(DIR_TABLE *myDirTable, char fileName[], int type, int FCBBlockNum
     }
 
     //是否存在同名文件
-    if (findUnitInTable(myDirTable, fileName) != -1)
+    if (FindDIRinTable(myDirTable, fileName) != -1)
     {
         printf("file already exist\n");
         return -1;
@@ -209,7 +217,7 @@ int deleteFile(char fileName[])
         return -1;
     }
     //查找文件的目录项位置
-    int unitIndex = findUnitInTable(currentDirTable, fileName);
+    int unitIndex = FindDIRinTable(currentDirTable, fileName);
     if (unitIndex == -1)
     {
         printf("file not found\n");
@@ -266,7 +274,7 @@ int deleteDir(char dirName[])
         return -1;
     }
     //查找文件
-    int unitIndex = findUnitInTable(currentDirTable, dirName);
+    int unitIndex = FindDIRinTable(currentDirTable, dirName);
     if (unitIndex == -1)
     {
         printf("file not found\n");
@@ -322,7 +330,7 @@ int deleteFileInTable(DIR_TABLE *myDirTable, int unitIndex)
 //读文件 read
 int file_read(char fileName[], int length)
 {
-    int unitIndex = findUnitInTable(currentDirTable, fileName);
+    int unitIndex = FindDIRinTable(currentDirTable, fileName);
     if (unitIndex == -1)
     {
         printf("file no found\n");
@@ -337,7 +345,7 @@ int file_read(char fileName[], int length)
 //重新读文件 reread
 int reread(char fileName[], int length)
 {
-    int unitIndex = findUnitInTable(currentDirTable, fileName);
+    int unitIndex = FindDIRinTable(currentDirTable, fileName);
     if (unitIndex == -1)
     {
         printf("file no found\n");
@@ -371,7 +379,7 @@ int doRead(INODE *myFCB, int length)
 //写文件，从末尾写入 write
 int file_write(char fileName[], char content[])
 {
-    int unitIndex = findUnitInTable(currentDirTable, fileName);
+    int unitIndex = FindDIRinTable(currentDirTable, fileName);
     if (unitIndex == -1)
     {
         printf("file no found\n");
@@ -386,7 +394,7 @@ int file_write(char fileName[], char content[])
 //重新写覆盖 rewrite
 int rewrite(char fileName[], char content[])
 {
-    int unitIndex = findUnitInTable(currentDirTable, fileName);
+    int unitIndex = FindDIRinTable(currentDirTable, fileName);
     if (unitIndex == -1)
     {
         printf("file no found\n");
@@ -418,8 +426,9 @@ int doWrite(INODE *myFCB, char content[])
     return 0;
 }
 
-//从目录中查找目录项目
-int findUnitInTable(DIR_TABLE *myDirTable, char unitName[])
+//从目录中查找目录项目  
+// 返回目录位置 -1则未找到
+int FindDIRinTable(DIR_TABLE *myDirTable, char unitName[])
 {
     //获得目录表
     int dirUnitAmount = myDirTable->dirUnitAmount;

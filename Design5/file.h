@@ -23,7 +23,7 @@ void showDir();
 //创建目录
 int creatDir(char dirName[]);
 //切换目录
-int changeDir(char dirName[]);
+int ChangeDir(char dirName[]);
 //删除目录
 int deleteDir(char fileName[]);
 //修改文件名或者目录名
@@ -50,7 +50,7 @@ int doWrite(INODE *myFCB, char content[]);
 //释放文件内存
 int releaseFile(int FCBBlock);
 //添加目录项
-int addDirUnit(DIR_TABLE *currentDirTable, char fileName[], int type, int FCBBlockNum);
+int AddDIR(DIR_TABLE *currentDirTable, char fileName[], int type, int FCBBlockNum);
 //创建FCB
 int creatFCB(int fcbBlockNum, int fileBlockNum, int fileSize);
 //指定目录删除
@@ -58,6 +58,6 @@ int deleteFileInTable(DIR_TABLE *myDirTable, int unitIndex);
 //删除目录项
 int deleteDirUnit(DIR_TABLE *currentDirTable, int unitIndex);
 //从目录中查找目录项目
-int findUnitInTable(DIR_TABLE *currentDirTable, char unitName[]);
+int FindDIRinTable(DIR_TABLE *currentDirTable, char unitName[]);
 
 #endif // __FILE_h__

@@ -18,11 +18,12 @@
 #define BLOCK_SIZE (1024)            //盘块大小
 #define BLOCK_COUNT (100 * 1024)     //系统盘块数目
 #define DIR_MAX_SIZE 15 //目录表项最大值
+#define MAX_FILE_NAME 59
 
 //目录项 64B
 typedef struct dirunit
 {
-    char fileName[59]; //文件名
+    char fileName[MAX_FILE_NAME]; //文件名
     char type;         //文件类型,0目录， 1文件
     int startBlock;    //起始盘块
 } DIR;

@@ -30,25 +30,21 @@ int main()
         {
             showDir();
         }
-        else if (strcmp(command, "help") == 0) //帮助
-        {
-            help();
-        }
         else if (strcmp(command, "cd") == 0) //切换目录
         {
             char name[59];
             scanf("%s", name);
-            changeDir(name);
-        }
-        else if (strcmp(command, "pwd") == 0) //显示目录
-        {
-            printf("%s\n", getPath());
+            ChangeDir(name);
         }
         else if (strcmp(command, "mkdir") == 0) //创建目录
         {
             char name[59];
             scanf("%s", name);
             creatDir(name);
+        }
+        else if (strcmp(command, "pwd") == 0) //显示目录
+        {
+            printf("%s\n", getPath());
         }
         else if (strcmp(command, "rmdir") == 0) //删除目录
         {
@@ -110,9 +106,13 @@ int main()
             scanf("%s", content);
             rewrite(name, content);
         }
+        else if (strcmp(command, "help") == 0) //帮助
+        {
+            help();
+        }
         else
         {
-            printf("command error\n");
+            printf("command not found! \n");
         }
 
         // 颜色显示  用绿色显示当前目录
