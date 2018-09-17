@@ -8,433 +8,487 @@
 
 #include "file.h"
 
-DIR_TABLE *rootDirTable;    //根目录
-DIR_TABLE *currentDirTable; //当前位置
-char path[256];             //保存当前绝对路径 字符串
+int open_dir(int inode)
+{
+    int i;
+    int pos = 0;
+    int left;
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
 
-//初始化根目录
-void initRootDir()
-{
-    //分配一个盘块空间给rootDirTable
-    int startBlock = getBlock(1);
-    if (startBlock == -1)
-        return;
-    rootDirTable = (DIR_TABLE *)getBlockAddr(startBlock);
-    rootDirTable->dirUnitAmount = 0;
-    //将自身作为父级目录
+    /*读出相应的i节点*/
+    fread(&curr_inode, sizeof(INODE), 1, Disk);
 
-    currentDirTable = rootDirTable;
-    //初始化初始绝对路径
-    path[0] = '/';
-    path[1] = '\0';  //字符串尾
-}
-//获得绝对路径
-char *getPath()
-{
-    return path;
-}
-//展示当前目录 ls
-void showDir()
-{
-    int unitAmount = currentDirTable->dirUnitAmount;
-    printf("total file num : %d \n", unitAmount);
-    //遍历所有表项
-    for (int i = 0; i < unitAmount; i++)
+    for (i = 0; i < curr_inode.blk_num - 1; ++i)
     {
-        //获取目录项
-        DIR dirtemp = currentDirTable->dirs[i];
-        //该表项是文件，继续输出大小和起始盘块号
-        if (dirtemp.type == F_FILE)
+        fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
+        fread(dir_table + pos, sizeof(DIR), DirPerBlk, Disk);
+        pos += DirPerBlk;
+    }
+
+    /*left为最后一个磁盘块内的目录项数*/
+    left = curr_inode.file_size / sizeof(DIR) - DirPerBlk * (curr_inode.blk_num - 1);
+    fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
+    fread(dir_table + pos, sizeof(DIR), left, Disk);
+    pos += left;
+
+    dir_num = pos;
+
+    return 1;
+}
+
+int close_dir(int inode)
+{
+    int i, pos = 0, left;
+
+    /*数据写回磁盘块*/
+    for (i = 0; i < curr_inode.blk_num - 1; ++i)
+    {
+        fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
+        fwrite(dir_table + pos, sizeof(DIR), DirPerBlk, Disk);
+        pos += DirPerBlk;
+    }
+
+    left = dir_num - pos;
+    //	printf("left:%d",left);
+    fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
+    fwrite(dir_table + pos, sizeof(DIR), left, Disk);
+
+    /*inode写回*/
+    curr_inode.file_size = dir_num * sizeof(DIR);
+    fseek(Disk, INODE_BEGIN + inode * sizeof(INODE), SEEK_SET);
+    fwrite(&curr_inode, sizeof(curr_inode), 1, Disk);
+
+    return 1;
+}
+
+/*创建新的目录项*/
+int make_file(int inode, char *name, int type)
+{
+    int new_node;
+    int blk_need = 1; //本目录需要增加磁盘块则blk_need=2
+    int t;
+
+    if (dir_num > MaxDirNum)
+    { //超过了目录文件能包含的最大目录项
+        printf("mkdir: cannot create directory '%s' :D_DIR full\n", name);
+        return 0;
+    }
+
+    if (check_name(inode, name) != -1)
+    { //防止重命名
+        printf("mkdir: cannnot create file '%s' :D_FILE exist\n", name);
+        return 0;
+    }
+
+    if (dir_num / DirPerBlk != (dir_num + 1) / DirPerBlk)
+    { //本目录也要增加磁盘块
+        blk_need = 2;
+    }
+
+    //	printf("blk_used:%d\n",super_blk.blk_used);
+    if (super_blk.blk_used + blk_need > BLOCK_NUM)
+    {
+
+        printf("mkdir: cannot create file '%s' :Block used up\n", name);
+        return 0;
+    }
+
+    if (blk_need == 2)
+    { //本目录需要增加磁盘块
+        t = curr_inode.blk_num++;
+        curr_inode.blk_identifier[t] = get_blk();
+    }
+
+    /*申请inode*/
+    new_node = apply_inode();
+
+    if (new_node == -1)
+    {
+        printf("mkdir: cannot create file '%s' :INODE used up\n", name);
+        return 0;
+    }
+
+    if (type == D_DIR)
+    {
+        /*初始化新建目录的inode*/
+        init_dir_inode(new_node, inode);
+    }
+    else if (type == D_FILE)
+    {
+        /*初始化新建文件的inode*/
+        init_file_inode(new_node);
+    }
+
+    strcpy(dir_table[dir_num].name, name);
+    dir_table[dir_num++].inode_num = new_node;
+}
+
+/*显示目录内容*/
+int show_dir(int inode)
+{
+    int i, color = 32;
+    for (i = 0; i < dir_num; ++i)
+    {
+        if (type_check(dir_table[i].name) == D_DIR)
         {
-            printf("%s\t", dirtemp.fileName);
+            /*目录显示绿色*/
+            printf("\033[1;%dm%s\t\033[0m", color, dir_table[i].name);
         }
-        else //目录
+        else
         {
-            // 目录用蓝色显示
-            printf("\e[1;34m%s\e[0m\t", dirtemp.fileName);
+            printf("%s\t", dir_table[i].name);
         }
+        if (!((i + 1) % 4))
+            printf("\n"); //4个一行
     }
     printf("\n");
+
+    return 1;
 }
-//切换目录 cd
-int ChangeDir(char dirName[])
+
+/*申请inode*/
+int apply_inode()
 {
-    //目录项在目录位置
-    int unitIndex = FindDIRinTable(currentDirTable, dirName);
-    //不存在
-    if (unitIndex == -1)
+    int i;
+
+    if (super_blk.inode_used >= INODE_NUM)
     {
-        printf("file not found\n");
-        return -1;
-    }
-    if (currentDirTable->dirs[unitIndex].type == F_FILE)
-    {
-        printf("not a dir\n");
-        return -1;
+        return -1; //inode节点用完
     }
 
-    //获得盘块
-    int dirBlock = currentDirTable->dirs[unitIndex].startBlock;
-    currentDirTable = (DIR_TABLE *)getBlockAddr(dirBlock);
-    //修改全局绝对路径
-    if (strcmp(dirName, "..") == 0)
+    super_blk.inode_used++;
+
+    for (i = 0; i < INODE_NUM; ++i)
     {
-        //回退绝对路径
-        int len = strlen(path);
-        for (int i = len - 2; i >= 0; i--)
-            if (path[i] == '/')
+        if (!super_blk.inode_map[i])
+        { //找到一个空的i节点
+            super_blk.inode_map[i] = 1;
+            return i;
+        }
+    }
+}
+
+int free_inode(int inode)
+{
+    INODE temp;
+    int i;
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
+    fread(&temp, sizeof(INODE), 1, Disk);
+
+    for (i = 0; i < temp.blk_num; ++i)
+    {
+        free_blk(temp.blk_identifier[i]);
+    }
+
+    super_blk.inode_map[inode] = 0;
+    super_blk.inode_used--;
+
+    return 1;
+}
+
+/*进入子目录*/
+int enter_dir(int inode, char *name)
+{
+    int child;
+    child = check_name(inode, name);
+
+    if (child == -1)
+    { //该子目录不存在
+        printf("cd: %s: No such file or directory\n", name);
+        return 0;
+    }
+
+    /*关闭当前目录,进入下一级目录*/
+    close_dir(inode);
+    inode_num = child;
+    open_dir(child);
+
+    return 1;
+}
+
+/*递归删除文件夹*/
+int del_file(int inode, char *name, int deepth)
+{
+    int child, i, t;
+    INODE temp;
+
+    if (!strcmp(name, ".") || !strcmp(name, ".."))
+    {
+        /*不允许删除.和..*/
+        printf("rmdir: failed to remove '%s': Invalid argument\n", name);
+        return 0;
+    }
+
+    child = check_name(inode, name);
+
+    if (child == -1)
+    { //子目录不存在
+        printf("rmdir: failed to remove '%s': No such file or directory\n", name);
+    }
+
+    /*读取当前子目录的Inode结构*/
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * child, SEEK_SET);
+    fread(&temp, sizeof(INODE), 1, Disk);
+
+    if (temp.type == D_FILE)
+    {
+        /*如果是文件则释放相应Inode即可*/
+        free_inode(child);
+        /*若是最上层文件，需调整目录*/
+        if (deepth == 0)
+        {
+            adjust_dir(name);
+        }
+        return 1;
+    }
+    else
+    {
+        /*否则进入子目录*/
+        enter_dir(inode, name);
+    }
+
+    for (i = 2; i < dir_num; ++i)
+    {
+        del_file(child, dir_table[i].name, deepth + 1);
+    }
+
+    enter_dir(child, ".."); //返回上层目录
+    free_inode(child);
+
+    if (deepth == 0)
+    {
+        /*删除自身在目录中的内容*/
+        if (dir_num / DirPerBlk != (dir_num - 1) / DirPerBlk)
+        {
+            /*有磁盘块可以释放*/
+            curr_inode.blk_num--;
+            t = curr_inode.blk_identifier[curr_inode.blk_num];
+            free_blk(t); //释放相应的磁盘块
+        }
+        adjust_dir(name); //因为可能在非末尾处删除，因此要移动dir_table的内容
+    }                     /*非初始目录直接释放Inode*/
+
+    return 1;
+}
+
+int adjust_dir(char *name)
+{
+    int pos;
+    for (pos = 0; pos < dir_num; ++pos)
+    {
+        /*先找到被删除的目录的位置*/
+        if (strcmp(dir_table[pos].name, name) == 0)
+            break;
+    }
+    for (pos++; pos < dir_num; ++pos)
+    {
+        /*pos之后的元素都往前移动一位*/
+        dir_table[pos - 1] = dir_table[pos];
+    }
+
+    dir_num--;
+    return 1;
+}
+
+/*初始化新建目录的inode*/
+int init_dir_inode(int child, int father)
+{
+    INODE temp;
+    DIR dot[2];
+    int blk_pos;
+
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * child, SEEK_SET);
+    fread(&temp, sizeof(INODE), 1, Disk);
+
+    blk_pos = get_blk(); //获取新磁盘块的编号
+
+    temp.blk_num = 1;
+    temp.blk_identifier[0] = blk_pos;
+    temp.type = D_DIR;
+    temp.file_size = 2 * sizeof(DIR);
+    /*将初始化完毕的Inode结构写回*/
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * child, SEEK_SET);
+    fwrite(&temp, sizeof(INODE), 1, Disk);
+
+    strcpy(dot[0].name, "."); //指向目录本身
+    dot[0].inode_num = child;
+
+    strcpy(dot[1].name, "..");
+    dot[1].inode_num = father;
+
+    /*将新目录的数据写进数据块*/
+    fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * blk_pos, SEEK_SET);
+    fwrite(dot, sizeof(DIR), 2, Disk);
+
+    return 1;
+}
+
+/*初始化新建文件的indoe*/
+int init_file_inode(int inode)
+{
+    INODE temp;
+    /*读取相应的Inode*/
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
+    fread(&temp, sizeof(INODE), 1, Disk);
+
+    temp.blk_num = 0;
+    temp.type = D_FILE;
+    temp.file_size = 0;
+    /*将已经初始化的Inode写回*/
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
+    fwrite(&temp, sizeof(INODE), 1, Disk);
+
+    return 1;
+}
+
+
+
+/*检查重命名*/
+int check_name(int inode, char *name)
+{
+    int i;
+    for (i = 0; i < dir_num; ++i)
+    {
+        /*存在重命名*/
+        if (strcmp(name, dir_table[i].name) == 0)
+        {
+            return dir_table[i].inode_num;
+        }
+    }
+
+    return -1;
+}
+
+void change_path(char *name)
+{
+    int pos;
+    if (strcmp(name, ".") == 0)
+    { //进入本目录则路径不变
+        return;
+    }
+    else if (strcmp(name, "..") == 0)
+    { //进入上层目录，将最后一个'/'后的内容去掉
+        pos = strlen(path) - 1;
+        for (; pos >= 0; --pos)
+        {
+            if (path[pos] == '/')
             {
-                path[i + 1] = '\0';
+                path[pos] = '\0';
                 break;
             }
-    }
-    else
-    {
-        strcat(path, dirName);
-        strcat(path, "/");
-    }
-
-    return 0;
-}
-//修改文件名或者目录名 mv
-int changeName(char oldName[], char newName[])
-{
-    int unitIndex = FindDIRinTable(currentDirTable, oldName);
-    if (unitIndex == -1)
-    {
-        printf("file not found\n");
-        return -1;
-    }
-    strcpy(currentDirTable->dirs[unitIndex].fileName, newName);
-    return 0;
-}
-
-//******************创建和删除文件
-//创建文件 touch
-int creatFile(char fileName[], int fileSize)
-{
-    //检测文件名字长度
-    if (strlen(fileName) >= 59)
-    {
-        printf("file name too long\n");
-        return -1;
-    }
-    //获得FCB的空间
-    int FCBBlock = getBlock(1);
-    if (FCBBlock == -1)
-        return -1;
-    //获取文件数据空间
-    int FileBlock = getBlock(fileSize);
-    if (FileBlock == -1)
-        return -1;
-    //创建FCB
-    if (creatFCB(FCBBlock, FileBlock, fileSize) == -1)
-        return -1;
-    //添加到目录项
-    if (AddDIR(currentDirTable, fileName, 1, FCBBlock) == -1)
-        return -1;
-
-    return 0;
-}
-
-//创建目录 mkdir
-int creatDir(char dirName[])
-{
-    if (strlen(dirName) >= MAX_FILE_NAME)
-    {
-        printf("file name too long !\n");
-        return -1;
-    }
-    // 检测是否有 /
-    if(strchr(dirName, '/') != NULL)
-    {
-        printf("file name can not have '/' !\n");
-        return -1;
-    }
-    //为目录表分配空间
-    int dirBlock = getBlock(1);
-    if (dirBlock == -1)
-        return -1;
-
-    //将目录作为目录项添加到当前目录
-    if (AddDIR(currentDirTable, dirName, 0, dirBlock) == -1)
-        return -1;
-    //为新建的目录添加一个到父目录的目录项
-    DIR_TABLE *newTable = (DIR_TABLE *)getBlockAddr(dirBlock);
-    newTable->dirUnitAmount = 0;
-    char parent[] = "..";
-    if (AddDIR(newTable, parent, 0, getAddrBlock((char *)currentDirTable)) == -1)
-        return -1;
-    return 0;
-}
-//创建FCB
-int creatFCB(int fcbBlockNum, int fileBlockNum, int fileSize)
-{
-    //找到fcb的存储位置
-    INODE *currentFCB = (INODE *)getBlockAddr(fcbBlockNum);
-    currentFCB->blockNum = fileBlockNum; //文件数据起始位置
-    currentFCB->fileSize = fileSize;     //文件大小
-    currentFCB->link = 1;                //文件链接数
-    currentFCB->dataSize = 0;            //文件已写入数据长度
-    currentFCB->readptr = 0;             //文件读指针
-    return 0;
-}
-//添加目录项
-int AddDIR(DIR_TABLE *myDirTable, char fileName[], int type, int FCBBlockNum)
-{
-    //获得目录表
-    int dirUnitAmount = myDirTable->dirUnitAmount;
-    //检测目录表示是否已满
-    if (dirUnitAmount == DIR_MAX_SIZE)
-    {
-        printf("dirTables is full, try to delete some file\n");
-        return -1;
-    }
-
-    //是否存在同名文件
-    if (FindDIRinTable(myDirTable, fileName) != -1)
-    {
-        printf("file already exist\n");
-        return -1;
-    }
-    //构建新目录项
-    DIR *newDirUnit = &myDirTable->dirs[dirUnitAmount];
-    myDirTable->dirUnitAmount++; //当前目录表的目录项数量+1
-    //设置新目录项内容
-    strcpy(newDirUnit->fileName, fileName);
-    newDirUnit->type = type;
-    newDirUnit->startBlock = FCBBlockNum;
-
-    return 0;
-}
-//删除文件 rm
-int deleteFile(char fileName[])
-{
-    //忽略系统的自动创建的父目录
-    if (strcmp(fileName, "..") == 0)
-    {
-        printf("can't delete ..\n");
-        return -1;
-    }
-    //查找文件的目录项位置
-    int unitIndex = FindDIRinTable(currentDirTable, fileName);
-    if (unitIndex == -1)
-    {
-        printf("file not found\n");
-        return -1;
-    }
-    DIR myUnit = currentDirTable->dirs[unitIndex];
-    //判断类型
-    if (myUnit.type == 0) //目录
-    {
-        printf("not a file\n");
-        return -1;
-    }
-    int FCBBlock = myUnit.startBlock;
-    //释放内存
-    releaseFile(FCBBlock);
-    //从目录表中剔除
-    deleteDirUnit(currentDirTable, unitIndex);
-    return 0;
-}
-//释放文件内存
-int releaseFile(int FCBBlock)
-{
-    INODE *myFCB = (INODE *)getBlockAddr(FCBBlock);
-    myFCB->link--; //链接数减一
-    //无链接，删除文件
-    if (myFCB->link == 0)
-    {
-        //释放文件的数据空间
-        releaseBlock(myFCB->blockNum, myFCB->fileSize);
-    }
-    //释放FCB的空间
-    releaseBlock(FCBBlock, 1);
-    return 0;
-}
-//删除目录项
-int deleteDirUnit(DIR_TABLE *myDirTable, int unitIndex)
-{
-    //迁移覆盖
-    int dirUnitAmount = myDirTable->dirUnitAmount;
-    for (int i = unitIndex; i < dirUnitAmount - 1; i++)
-    {
-        myDirTable->dirs[i] = myDirTable->dirs[i + 1];
-    }
-    myDirTable->dirUnitAmount--;
-    return 0;
-}
-//删除目录 rmdir
-int deleteDir(char dirName[])
-{
-    //忽略系统的自动创建的父目录
-    if (strcmp(dirName, "..") == 0)
-    {
-        printf("can't delete ..\n");
-        return -1;
-    }
-    //查找文件
-    int unitIndex = FindDIRinTable(currentDirTable, dirName);
-    if (unitIndex == -1)
-    {
-        printf("file not found\n");
-        return -1;
-    }
-    DIR myUnit = currentDirTable->dirs[unitIndex];
-    //判断类型
-    if (myUnit.type == 0) //目录
-    {
-        deleteFileInTable(currentDirTable, unitIndex);
-    }
-    else
-    {
-        printf("not a dir\n");
-        return -1;
-    }
-    //从目录表中剔除
-    deleteDirUnit(currentDirTable, unitIndex);
-    return 0;
-}
-//删除文件/目录项
-int deleteFileInTable(DIR_TABLE *myDirTable, int unitIndex)
-{
-    //查找文件
-    DIR myUnit = myDirTable->dirs[unitIndex];
-    //判断类型
-    if (myUnit.type == 0) //目录
-    {
-        //找到目录位置
-        int FCBBlock = myUnit.startBlock;
-        DIR_TABLE *table = (DIR_TABLE *)getBlockAddr(FCBBlock);
-        //递归删除目录下的所有文件
-        printf("cycle delete dir %s\n", myUnit.fileName);
-        int unitCount = table->dirUnitAmount;
-        for (int i = 1; i < unitCount; i++) //忽略“..”
-        {
-            printf("delete %s\n", table->dirs[i].fileName);
-            deleteFileInTable(table, i);
         }
-        //释放目录表空间
-        releaseBlock(FCBBlock, 1);
     }
     else
-    { //文件
-        //释放文件内存
-        int FCBBlock = myUnit.startBlock;
-        releaseFile(FCBBlock);
+    { //否则在路径末尾添加子目录
+        strcat(path, "/");
+        strcat(path, name);
     }
-    return 0;
+
+    return;
 }
 
-//**********************读写操作
-//读文件 read
-int file_read(char fileName[], int length)
+int type_check(char *name)
 {
-    int unitIndex = FindDIRinTable(currentDirTable, fileName);
-    if (unitIndex == -1)
+    int i, inode;
+    INODE temp;
+    for (i = 0; i < dir_num; ++i)
     {
-        printf("file no found\n");
-        return -1;
+        if (strcmp(name, dir_table[i].name) == 0)
+        {
+            inode = dir_table[i].inode_num;
+            fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
+            fread(&temp, sizeof(INODE), 1, Disk);
+            return temp.type;
+        }
     }
-    //控制块
-    int FCBBlock = currentDirTable->dirs[unitIndex].startBlock;
-    INODE *myFCB = (INODE *)getBlockAddr(FCBBlock);
-    doRead(myFCB, length);
-    return 0;
-}
-//重新读文件 reread
-int reread(char fileName[], int length)
-{
-    int unitIndex = FindDIRinTable(currentDirTable, fileName);
-    if (unitIndex == -1)
-    {
-        printf("file no found\n");
-        return -1;
-    }
-    //控制块
-    int FCBBlock = currentDirTable->dirs[unitIndex].startBlock;
-    INODE *myFCB = (INODE *)getBlockAddr(FCBBlock);
-    myFCB->readptr = 0;
-    doRead(myFCB, length);
-
-    return 0;
-}
-//执行读操作
-int doRead(INODE *myFCB, int length)
-{
-    //读数据
-    int dataSize = myFCB->dataSize;
-    char *data = (char *)getBlockAddr(myFCB->blockNum);
-    //在不超出数据长度下，读取指定长度的数据
-    for (int i = 0; i < length && myFCB->readptr < dataSize; i++, myFCB->readptr++)
-    {
-        printf("%c", *(data + myFCB->readptr));
-    }
-    if (myFCB->readptr == dataSize) //读到文件末尾用#表示
-        printf("#");
-    //换行美观
-    printf("\n");
-    return 0;
-}
-//写文件，从末尾写入 write
-int file_write(char fileName[], char content[])
-{
-    int unitIndex = FindDIRinTable(currentDirTable, fileName);
-    if (unitIndex == -1)
-    {
-        printf("file no found\n");
-        return -1;
-    }
-    //控制块
-    int FCBBlock = currentDirTable->dirs[unitIndex].startBlock;
-    INODE *myFCB = (INODE *)getBlockAddr(FCBBlock);
-    doWrite(myFCB, content);
-    return 0;
-}
-//重新写覆盖 rewrite
-int rewrite(char fileName[], char content[])
-{
-    int unitIndex = FindDIRinTable(currentDirTable, fileName);
-    if (unitIndex == -1)
-    {
-        printf("file no found\n");
-        return -1;
-    }
-    //控制块
-    int FCBBlock = currentDirTable->dirs[unitIndex].startBlock;
-    INODE *myFCB = (INODE *)getBlockAddr(FCBBlock);
-    //重设数据块
-    myFCB->dataSize = 0;
-    myFCB->readptr = 0;
-
-    doWrite(myFCB, content);
-    return 0;
-}
-//执行写操作
-int doWrite(INODE *myFCB, char content[])
-{
-    int contentLen = strlen(content);
-    int fileSize = myFCB->fileSize * BLOCK_SIZE;
-    char *data = (char *)getBlockAddr(myFCB->blockNum);
-    //在不超出文件的大小的范围内写入
-    for (int i = 0; i < contentLen && myFCB->dataSize < fileSize; i++, myFCB->dataSize++)
-    {
-        *(data + myFCB->dataSize) = content[i];
-    }
-    if (myFCB->dataSize == fileSize)
-        printf("file is full,can't write in\n");
-    return 0;
+    return -1; //该文件或目录不存在
 }
 
-//从目录中查找目录项目  
-// 返回目录位置 -1则未找到
-int FindDIRinTable(DIR_TABLE *myDirTable, char unitName[])
+/*读文件函数*/
+int file_read(char *name)
 {
-    //获得目录表
-    int dirUnitAmount = myDirTable->dirUnitAmount;
-    int unitIndex = -1;
-    for (int i = 0; i < dirUnitAmount; i++) //查找目录项位置
-        if (strcmp(unitName, myDirTable->dirs[i].fileName) == 0)
-            unitIndex = i;
-    return unitIndex;
+    int inode, i, blk_num;
+    INODE temp;
+    FILE *fp = fopen(BUFF, "w+");
+    char buff[BLOCK_SIZE];
+    //printf("read\n");
+
+    inode = check_name(inode_num, name);
+
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
+    fread(&temp, sizeof(temp), 1, Disk);
+
+    if (temp.blk_num == 0)
+    { //如果源文件没有内容,则直接退出
+        fclose(fp);
+        return 1;
+    }
+    printf("read\n");
+    for (i = 0; i < temp.blk_num - 1; ++i)
+    {
+        blk_num = temp.blk_identifier[i];
+        /*读出文件包含的磁盘块*/
+        fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * blk_num, SEEK_SET);
+        fread(buff, sizeof(char), BLOCK_SIZE, Disk);
+        /*写入BUFF*/
+        fwrite(buff, sizeof(char), BLOCK_SIZE, fp);
+        free_blk(blk_num); //直接将该磁盘块释放
+        temp.file_size -= BLOCK_SIZE;
+    }
+
+    /*最后一块磁盘块可能未满*/
+    blk_num = temp.blk_identifier[i];
+    fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * blk_num, SEEK_SET);
+    fread(buff, sizeof(char), temp.file_size, Disk);
+    fwrite(buff, sizeof(char), temp.file_size, fp);
+    free_blk(blk_num);
+    /*修改inode信息*/
+    temp.file_size = 0;
+    temp.blk_num = 0;
+
+    /*将修改后的Inode写回*/
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
+    fwrite(&temp, sizeof(INODE), 1, Disk);
+
+    fclose(fp);
+    return 1;
+}
+
+/*写文件函数*/
+int file_write(char *name)
+{
+    int inode, i;
+    int num, blk_num;
+    FILE *fp = fopen(BUFF, "r");
+    INODE temp;
+    char buff[BLOCK_SIZE];
+
+    inode = check_name(inode_num, name);
+
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
+    fread(&temp, sizeof(INODE), 1, Disk);
+
+    while (num = fread(buff, sizeof(char), BLOCK_SIZE, fp))
+    {
+        printf("num:%d\n", num);
+        if ((blk_num = get_blk()) == -1)
+        {
+            printf("error:	block has been used up\n");
+            break;
+        }
+        /*改变Inode结构的相应状态*/
+        temp.blk_identifier[temp.blk_num++] = blk_num;
+        temp.file_size += num;
+
+        /*将数据写回磁盘块*/
+        fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * blk_num, SEEK_SET);
+        fwrite(buff, sizeof(char), num, Disk);
+    }
+
+    /*将修改后的Inode写回*/
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
+    fwrite(&temp, sizeof(INODE), 1, Disk);
+
+    fclose(fp);
+    return 1;
 }

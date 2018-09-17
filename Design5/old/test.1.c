@@ -9,15 +9,14 @@
 #define BLOCK_SIZE 1024        //磁盘块大小为1K
 #define BlkPerNode 1024        //每个文件包含的最大的磁盘块数目
 #define DISK "disk.img"
-#define BUFF "buff.txt"                                     //读写文件时的缓冲文件
-#define SuperBeg 0                                          //超级块的起始地址
-#define InodeBeg sizeof(SUPER_BLOCK)                        //i节点区启示地址
-#define BlockBeg (InodeBeg + INODE_NUM * sizeof(INODE))     //数据区起始地址
+#define BUFF ".buff.txt"                                     //读写文件时的缓冲文件
+#define SUPER_BEGIN 0                                          //超级块的起始地址
+#define INODE_BEGIN sizeof(SUPER_BLOCK)                        //i节点区启示地址
+#define BLOCK_BEGIN (INODE_BEGIN + INODE_NUM * sizeof(INODE))     //数据区起始地址
 #define MaxDirNum (BlkPerNode * (BLOCK_SIZE / sizeof(DIR))) //每个目录最大的文件数
 #define DirPerBlk (BLOCK_SIZE / sizeof(DIR))                //每个磁盘块包含的最大目录项
 #define D_DIR 0
 #define D_FILE 1
-#define CommanNum (sizeof(command) / sizeof(char *)) //指令数目
 
 typedef struct superblk
 {
@@ -178,7 +177,7 @@ int main()
 
 int init_fs(void)
 {
-    fseek(Disk, SuperBeg, SEEK_SET);
+    fseek(Disk, SUPER_BEGIN, SEEK_SET);
     fread(&super_blk, sizeof(SUPER_BLOCK), 1, Disk); //读取超级块
 
     inode_num = 0;
@@ -193,7 +192,7 @@ int init_fs(void)
 
 int close_fs(void)
 {
-    fseek(Disk, SuperBeg, SEEK_SET);
+    fseek(Disk, SUPER_BEGIN, SEEK_SET);
     fwrite(&super_blk, sizeof(SUPER_BLOCK), 1, Disk);
 
     close_dir(inode_num);
@@ -214,7 +213,7 @@ int format_fs(void)
     inode_num = 0; //将当前目录改为根目录
 
     /*读取根目录的i节点*/
-    fseek(Disk, InodeBeg, SEEK_SET);
+    fseek(Disk, INODE_BEGIN, SEEK_SET);
     fread(&curr_inode, sizeof(INODE), 1, Disk);
     //	printf("%d\n",curr_inode.file_size/sizeof(DIR));
 
@@ -240,21 +239,21 @@ int open_dir(int inode)
     int i;
     int pos = 0;
     int left;
-    fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
 
     /*读出相应的i节点*/
     fread(&curr_inode, sizeof(INODE), 1, Disk);
 
     for (i = 0; i < curr_inode.blk_num - 1; ++i)
     {
-        fseek(Disk, BlockBeg + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
+        fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
         fread(dir_table + pos, sizeof(DIR), DirPerBlk, Disk);
         pos += DirPerBlk;
     }
 
     /*left为最后一个磁盘块内的目录项数*/
     left = curr_inode.file_size / sizeof(DIR) - DirPerBlk * (curr_inode.blk_num - 1);
-    fseek(Disk, BlockBeg + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
+    fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
     fread(dir_table + pos, sizeof(DIR), left, Disk);
     pos += left;
 
@@ -270,19 +269,19 @@ int close_dir(int inode)
     /*数据写回磁盘块*/
     for (i = 0; i < curr_inode.blk_num - 1; ++i)
     {
-        fseek(Disk, BlockBeg + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
+        fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
         fwrite(dir_table + pos, sizeof(DIR), DirPerBlk, Disk);
         pos += DirPerBlk;
     }
 
     left = dir_num - pos;
     //	printf("left:%d",left);
-    fseek(Disk, BlockBeg + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
+    fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * curr_inode.blk_identifier[i], SEEK_SET);
     fwrite(dir_table + pos, sizeof(DIR), left, Disk);
 
     /*inode写回*/
     curr_inode.file_size = dir_num * sizeof(DIR);
-    fseek(Disk, InodeBeg + inode * sizeof(INODE), SEEK_SET);
+    fseek(Disk, INODE_BEGIN + inode * sizeof(INODE), SEEK_SET);
     fwrite(&curr_inode, sizeof(curr_inode), 1, Disk);
 
     return 1;
@@ -399,7 +398,7 @@ int free_inode(int inode)
 {
     INODE temp;
     int i;
-    fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
     fread(&temp, sizeof(INODE), 1, Disk);
 
     for (i = 0; i < temp.blk_num; ++i)
@@ -454,7 +453,7 @@ int del_file(int inode, char *name, int deepth)
     }
 
     /*读取当前子目录的Inode结构*/
-    fseek(Disk, InodeBeg + sizeof(INODE) * child, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * child, SEEK_SET);
     fread(&temp, sizeof(INODE), 1, Disk);
 
     if (temp.type == D_FILE)
@@ -524,7 +523,7 @@ int init_dir_inode(int child, int father)
     DIR dot[2];
     int blk_pos;
 
-    fseek(Disk, InodeBeg + sizeof(INODE) * child, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * child, SEEK_SET);
     fread(&temp, sizeof(INODE), 1, Disk);
 
     blk_pos = get_blk(); //获取新磁盘块的编号
@@ -534,7 +533,7 @@ int init_dir_inode(int child, int father)
     temp.type = D_DIR;
     temp.file_size = 2 * sizeof(DIR);
     /*将初始化完毕的Inode结构写回*/
-    fseek(Disk, InodeBeg + sizeof(INODE) * child, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * child, SEEK_SET);
     fwrite(&temp, sizeof(INODE), 1, Disk);
 
     strcpy(dot[0].name, "."); //指向目录本身
@@ -544,7 +543,7 @@ int init_dir_inode(int child, int father)
     dot[1].inode_num = father;
 
     /*将新目录的数据写进数据块*/
-    fseek(Disk, BlockBeg + BLOCK_SIZE * blk_pos, SEEK_SET);
+    fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * blk_pos, SEEK_SET);
     fwrite(dot, sizeof(DIR), 2, Disk);
 
     return 1;
@@ -555,42 +554,20 @@ int init_file_inode(int inode)
 {
     INODE temp;
     /*读取相应的Inode*/
-    fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
     fread(&temp, sizeof(INODE), 1, Disk);
 
     temp.blk_num = 0;
     temp.type = D_FILE;
     temp.file_size = 0;
     /*将已经初始化的Inode写回*/
-    fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
     fwrite(&temp, sizeof(INODE), 1, Disk);
 
     return 1;
 }
 
-/*申请未被使用的磁盘块*/
-int get_blk()
-{
-    int i;
-    super_blk.blk_used++;
-    for (i = 0; i < BLOCK_NUM; ++i)
-    { //找到未被使用的块
-        if (!super_blk.blk_map[i])
-        {
-            super_blk.blk_map[i] = 1;
-            return i;
-        }
-    }
 
-    return -1; //没有多余的磁盘块
-}
-
-/*释放磁盘块*/
-int free_blk(int blk_pos)
-{
-    super_blk.blk_used--;
-    super_blk.blk_map[blk_pos] = 0;
-}
 
 /*检查重命名*/
 int check_name(int inode, char *name)
@@ -645,7 +622,7 @@ int type_check(char *name)
         if (strcmp(name, dir_table[i].name) == 0)
         {
             inode = dir_table[i].inode_num;
-            fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+            fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
             fread(&temp, sizeof(INODE), 1, Disk);
             return temp.type;
         }
@@ -664,7 +641,7 @@ int file_read(char *name)
 
     inode = check_name(inode_num, name);
 
-    fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
     fread(&temp, sizeof(temp), 1, Disk);
 
     if (temp.blk_num == 0)
@@ -677,7 +654,7 @@ int file_read(char *name)
     {
         blk_num = temp.blk_identifier[i];
         /*读出文件包含的磁盘块*/
-        fseek(Disk, BlockBeg + BLOCK_SIZE * blk_num, SEEK_SET);
+        fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * blk_num, SEEK_SET);
         fread(buff, sizeof(char), BLOCK_SIZE, Disk);
         /*写入BUFF*/
         fwrite(buff, sizeof(char), BLOCK_SIZE, fp);
@@ -687,7 +664,7 @@ int file_read(char *name)
 
     /*最后一块磁盘块可能未满*/
     blk_num = temp.blk_identifier[i];
-    fseek(Disk, BlockBeg + BLOCK_SIZE * blk_num, SEEK_SET);
+    fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * blk_num, SEEK_SET);
     fread(buff, sizeof(char), temp.file_size, Disk);
     fwrite(buff, sizeof(char), temp.file_size, fp);
     free_blk(blk_num);
@@ -696,7 +673,7 @@ int file_read(char *name)
     temp.blk_num = 0;
 
     /*将修改后的Inode写回*/
-    fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
     fwrite(&temp, sizeof(INODE), 1, Disk);
 
     fclose(fp);
@@ -714,7 +691,7 @@ int file_write(char *name)
 
     inode = check_name(inode_num, name);
 
-    fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
     fread(&temp, sizeof(INODE), 1, Disk);
 
     while (num = fread(buff, sizeof(char), BLOCK_SIZE, fp))
@@ -730,14 +707,38 @@ int file_write(char *name)
         temp.file_size += num;
 
         /*将数据写回磁盘块*/
-        fseek(Disk, BlockBeg + BLOCK_SIZE * blk_num, SEEK_SET);
+        fseek(Disk, BLOCK_BEGIN + BLOCK_SIZE * blk_num, SEEK_SET);
         fwrite(buff, sizeof(char), num, Disk);
     }
 
     /*将修改后的Inode写回*/
-    fseek(Disk, InodeBeg + sizeof(INODE) * inode, SEEK_SET);
+    fseek(Disk, INODE_BEGIN + sizeof(INODE) * inode, SEEK_SET);
     fwrite(&temp, sizeof(INODE), 1, Disk);
 
     fclose(fp);
     return 1;
+}
+
+/*申请未被使用的磁盘块*/
+int get_blk()
+{
+    int i;
+    super_blk.blk_used++;
+    for (i = 0; i < BLOCK_NUM; ++i)
+    { //找到未被使用的块
+        if (!super_blk.blk_map[i])
+        {
+            super_blk.blk_map[i] = 1;
+            return i;
+        }
+    }
+
+    return -1; //没有多余的磁盘块
+}
+
+/*释放磁盘块*/
+int free_blk(int blk_pos)
+{
+    super_blk.blk_used--;
+    super_blk.blk_map[blk_pos] = 0;
 }

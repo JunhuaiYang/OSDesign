@@ -7,69 +7,97 @@
 ***********************************************************************/
 
 #include "disk.h"
+#include "file.h"
 
-char *systemStartAddr; //系统起始地址
+DIR dir_table[MaxDirNum]; //将当前目录文件的内容都载入内存
+int dir_num;              //相应编号的目录项数
+int inode_num;            //当前目录的inode编号
+INODE curr_inode;         //当前目录的inode结构
+SUPER_BLOCK super_blk;    //文件系统的超级块
+FILE *Disk;
+char path[40] = "/";
 
-//初始化系统
-void initSystem()
+int init_fs(void)
 {
-    //创建空间
-    systemStartAddr = (char *)malloc(SYS_SIZE * sizeof(char));
-    //初始化盘块的位示图
-    for (int i = 0; i < BLOCK_COUNT; i++)
-        systemStartAddr[i] = '0';
-    //用于存放位示图的空间已被占用
-    int bitMapSize = BLOCK_COUNT * sizeof(char) / BLOCK_SIZE; //位示图占用盘块数:100
-    for (int i = 0; i < bitMapSize; i++)                      //从零开始分配
-        systemStartAddr[i] = '1';                             //盘块已被使用
-}
-//退出系统
-void exitSystem()
-{
-    free(systemStartAddr);
-}
-//磁盘分配
-int getBlock(int blockSize)
-{
-    int startBlock = 0;
-    int sum = 0;
-    for (int i = 0; i < BLOCK_COUNT; i++)
+    fseek(Disk, SUPER_BEGIN, SEEK_SET);
+    fread(&super_blk, sizeof(SUPER_BLOCK), 1, Disk); //读取超级块
+
+    inode_num = 0;
+    if (!open_dir(inode_num))
     {
-        if (systemStartAddr[i] == '0') //可用盘块
-        {
-            if (sum == 0) //刚开始，设置开始盘块号
-                startBlock = i;
-            sum++;
-            if (sum == blockSize) //连续盘块是否满足需求
-            {
-                //满足分配，置1
-                for (int j = startBlock; j < startBlock + blockSize; j++)
-                    systemStartAddr[j] = '1';
-                return startBlock;
-            }
-        }
-        else //已被使用,连续已经被打断
-            sum = 0;
+        printf("CANT'T OPEN ROOT DIRECTORY\n");
+        return 0;
     }
-    printf("not found such series memory Or memory is full\n");
-    return -1;
+
+    return 1;
 }
-//获得盘块的物理地址
-char *getBlockAddr(int blockNum)
+
+int close_fs(void)
 {
-    return systemStartAddr + blockNum * BLOCK_SIZE; //偏移量单位为字节
+    fseek(Disk, SUPER_BEGIN, SEEK_SET);
+    fwrite(&super_blk, sizeof(SUPER_BLOCK), 1, Disk);
+
+    close_dir(inode_num);
+    return 1;
 }
-//获得物理地址的盘块号
-int getAddrBlock(char *addr)
+
+int format_fs(void)
 {
-    return (addr - systemStartAddr) / BLOCK_SIZE;
+    /*格式化inode_map,保留根目录*/
+    memset(super_blk.inode_map, 0, sizeof(super_blk.inode_map));
+    super_blk.inode_map[0] = 1;
+    super_blk.inode_used = 1;
+    /*格式化blk_map,保留第一个磁盘块给根目录*/
+    memset(super_blk.blk_map, 0, sizeof(super_blk.blk_map));
+    super_blk.blk_map[0] = 1;
+    super_blk.blk_used = 1;
+
+    inode_num = 0; //将当前目录改为根目录
+
+    /*读取根目录的i节点*/
+    fseek(Disk, INODE_BEGIN, SEEK_SET);
+    fread(&curr_inode, sizeof(INODE), 1, Disk);
+    //	printf("%d\n",curr_inode.file_size/sizeof(DIR));
+
+    curr_inode.file_size = 2 * sizeof(DIR);
+    curr_inode.blk_num = 1;
+    curr_inode.blk_identifier[0] = 0; //第零块磁盘一定是根目录的
+
+    /*仅.和..目录项有效*/
+    dir_num = 2;
+
+    strcpy(dir_table[0].name, ".");
+    dir_table[0].inode_num = 0;
+    strcpy(dir_table[1].name, "..");
+    dir_table[1].inode_num = 0;
+
+    strcpy(path, "monster: root");
+
+    return 1;
 }
-//释放盘块、
-int releaseBlock(int blockNum, int blockSize)
+
+
+/*申请未被使用的磁盘块*/
+int get_blk()
 {
-    int endBlock = blockNum + blockSize;
-    //修改位示图盘块的位置为0
-    for (int i = blockNum; i < endBlock; i++)
-        systemStartAddr[i] = '0';
+    int i;
+    super_blk.blk_used++;
+    for (i = 0; i < BLOCK_NUM; ++i)
+    { //找到未被使用的块
+        if (!super_blk.blk_map[i])
+        {
+            super_blk.blk_map[i] = 1;
+            return i;
+        }
+    }
+
+    return -1; //没有多余的磁盘块
+}
+
+/*释放磁盘块*/
+int free_blk(int blk_pos)
+{
+    super_blk.blk_used--;
+    super_blk.blk_map[blk_pos] = 0;
     return 0;
 }

@@ -12,51 +12,57 @@
 #include <string.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/wait.h>
 
-//磁盘操作接口
-#define SYS_SIZE (100 * 1024 * 1024) //系统大小
-#define BLOCK_SIZE (1024)            //盘块大小
-#define BLOCK_COUNT (100 * 1024)     //系统盘块数目
-#define DIR_MAX_SIZE 15 //目录表项最大值
-#define MAX_FILE_NAME 59
+#define INODE_NUM 2048         //i节点数目
+#define BLOCK_NUM (100 * 1024) //磁盘块的数目
+#define BLOCK_SIZE 1024        //磁盘块大小为1K
+#define BlkPerNode 1024        //每个文件包含的最大的磁盘块数目
+#define DISK "disk.img"
+#define BUFF ".buff.txt"                                     //读写文件时的缓冲文件
+#define SUPER_BEGIN 0                                          //超级块的起始地址
+#define INODE_BEGIN sizeof(SUPER_BLOCK)                        //i节点区启示地址
+#define BLOCK_BEGIN (INODE_BEGIN + INODE_NUM * sizeof(INODE))     //数据区起始地址
+#define MaxDirNum (BlkPerNode * (BLOCK_SIZE / sizeof(DIR))) //每个目录最大的文件数
+#define DirPerBlk (BLOCK_SIZE / sizeof(DIR))                //每个磁盘块包含的最大目录项
 
-//目录项 64B
-typedef struct dirunit
+
+
+typedef struct superblk
 {
-    char fileName[MAX_FILE_NAME]; //文件名
-    char type;         //文件类型,0目录， 1文件
-    int startBlock;    //起始盘块
-} DIR;
+    char inode_map[INODE_NUM]; //i节点位图
+    char blk_map[BLOCK_NUM];   //磁盘块位图
+    int inode_used;            //已被使用的i节点数目
+    int blk_used;              //已被使用的磁盘块数目
+} SUPER_BLOCK;
 
-//目录表
-//一个目录表占用一个盘块，允许最多文件数为15
-typedef struct DIR_TABLE
-{
-    int dirUnitAmount;      //目录项数目
-    DIR dirs[DIR_MAX_SIZE]; //目录项列表
-} DIR_TABLE;
-
-//INODE
 typedef struct inode
 {
-    int blockNum; //文件数据起始盘块号
-    int fileSize; //文件大小，盘块为单位
-    int dataSize; //已写入的内容大小，字节为单位
-    int readptr;  //读指针，字节为单位
-    int link;     //文件链接数
+    int blk_identifier[BlkPerNode]; //占用的磁盘块编号
+    int blk_num;                    //占用的磁盘块数目
+    int file_size;                  //文件的大小
+    int type;                       //文件的类型
 } INODE;
 
-//初始化系统
-void initSystem(void);
-//磁盘分配
-int getBlock(int blockSize);
-//获得盘块的物理地址
-char *getBlockAddr(int blockNum);
-//获得物理地址的盘块号
-int getAddrBlock(char *addr);
-//释放盘块、
-int releaseBlock(int blockNum, int blockSize);
-//退出系统
-void exitSystem();
+typedef struct dir
+{
+    char name[30];   //目录名
+    short inode_num; //目录对应的inode
+} DIR;
+
+extern DIR dir_table[MaxDirNum]; //将当前目录文件的内容都载入内存
+extern int dir_num;              //相应编号的目录项数
+extern int inode_num;            //当前目录的inode编号
+extern INODE curr_inode;         //当前目录的inode结构
+extern SUPER_BLOCK super_blk;    //文件系统的超级块
+extern FILE *Disk;
+extern char path[40];
+
+int init_fs(void);   //初始化文件系统
+int close_fs(void);  //关闭文件系统
+int format_fs(void); //格式化文件系统
+
+int free_blk(int); //释放相应的磁盘块
+int get_blk(void); //获取磁盘块
 
 #endif // __DISK_h__

@@ -10,54 +10,29 @@
 
 #include "disk.h"
 
-#define F_DIR  0
-#define F_FILE 1
+#define D_DIR 0
+#define D_FILE 1
 
-//文件系统操作
-//初始化根目录
-void initRootDir();
-//展示绝对路径
-char *getPath();
-//展示当前目录文件
-void showDir();
-//创建目录
-int creatDir(char dirName[]);
-//切换目录
-int ChangeDir(char dirName[]);
-//删除目录
-int deleteDir(char fileName[]);
-//修改文件名或者目录名
-int changeName(char oldName[], char newName[]);
+int open_dir(int);               //打开相应inode对应的目录
+int close_dir(int);              //保存相应inode的目录
+int show_dir(int);               //显示目录
+int make_file(int, char *, int); //创建新的目录或文件
+int del_file(int, char *, int);  //删除子目录
+int enter_dir(int, char *);      //进入子目录
 
-//创建文件
-int creatFile(char fileName[], int fileSize);
-//删除文件
-int deleteFile(char fileName[]);
+int file_write(char *); //写文件
+int file_read(char *);  //读文件
 
-//读文件
-int file_read(char fileName[], int length);
-//重新读文件
-int reread(char fileName[], int length);
-//执行读操作
-int doRead(INODE *myFCB, int length);
-//写文件，从末尾写入
-int file_write(char fileName[], char content[]);
-//重新写覆盖
-int rewrite(char fileName[], char content[]);
-//执行写操作
-int doWrite(INODE *myFCB, char content[]);
+int adjust_dir(char *); //删除子目录后，调整原目录，使中间无空隙
 
-//释放文件内存
-int releaseFile(int FCBBlock);
-//添加目录项
-int AddDIR(DIR_TABLE *currentDirTable, char fileName[], int type, int FCBBlockNum);
-//创建FCB
-int creatFCB(int fcbBlockNum, int fileBlockNum, int fileSize);
-//指定目录删除
-int deleteFileInTable(DIR_TABLE *myDirTable, int unitIndex);
-//删除目录项
-int deleteDirUnit(DIR_TABLE *currentDirTable, int unitIndex);
-//从目录中查找目录项目
-int FindDIRinTable(DIR_TABLE *currentDirTable, char unitName[]);
+int check_name(int, char *); //检查重命名,返回-1表示名字不存在，否则返回相应inode
+int type_check(char *);      //确定文件的类型
+
+int free_inode(int);          //释放相应的inode
+int apply_inode();            //申请inode,返还相应的inode号，返还-1则INODE用完
+int init_dir_inode(int, int); //初始化新建目录的inode
+int init_file_inode(int);     //初始化新建文件的inode
+
+void change_path(char *);
 
 #endif // __FILE_h__
